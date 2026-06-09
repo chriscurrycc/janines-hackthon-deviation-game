@@ -1,0 +1,30 @@
+# Server-side compose: pulls pre-built images from GHCR (no build on the server).
+# Put ANTHROPIC_API_KEY + ANTHROPIC_MODEL in a sibling .env file (see .env.example).
+#
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# The watchtower service auto-pulls new :latest images and restarts — so after CI
+# pushes a new build, the server updates itself within a few minutes. Remove it if
+# you'd rather pull manually.
+services:
+  web:
+    image: ghcr.io/chriscurrycc/deviation-web:latest
+    env_file: .env
+    ports:
+      - "127.0.0.1:7242:7242"
+    restart: unless-stopped
+
+  realtime:
+    image: ghcr.io/chriscurrycc/deviation-realtime:latest
+    env_file: .env
+    ports:
+      - "127.0.0.1:7243:7243"
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 --cleanup

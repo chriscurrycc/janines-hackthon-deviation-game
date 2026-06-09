@@ -1,0 +1,21 @@
+{
+  "name": "deviation-game",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Deviation Game — draw to fool the AI. Next.js web app + realtime WebSocket service.",
+  "scripts": {
+    "dev": "dotenv -e .env -- concurrently -k -n web,rt -c blue,magenta \"pnpm --filter @deviation/web dev\" \"pnpm --filter @deviation/realtime dev\"",
+    "build": "pnpm --filter @deviation/web build",
+    "start:web": "pnpm --filter @deviation/web start",
+    "start:realtime": "pnpm --filter @deviation/realtime start",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3",
+    "dotenv-cli": "^11.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp"]
+  },
+  "packageManager": "pnpm@10.33.0"
+}
