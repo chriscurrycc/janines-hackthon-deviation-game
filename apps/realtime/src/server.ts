@@ -3,15 +3,20 @@
 // Behind nginx, /ws is routed here; the web app and this service share an origin.
 import { createServer } from 'node:http'
 import { WebSocketServer } from 'ws'
-import { handleClose, handleMessage, type Connection } from './rooms'
+import { handleClose, handleMessage, listRooms, type Connection } from './rooms'
 
 const PORT = Number(process.env.PORT || 7243)
 
-// A bare HTTP server so we can also answer health checks; WS upgrades on /ws.
+// A bare HTTP server for health checks + the active-room list; WS upgrades on /ws.
 const httpServer = createServer((req, res) => {
   if (req.url === '/health') {
     res.writeHead(200, { 'content-type': 'text/plain' })
     res.end('ok')
+    return
+  }
+  if (req.url === '/rooms') {
+    res.writeHead(200, { 'content-type': 'application/json' })
+    res.end(JSON.stringify(listRooms()))
     return
   }
   res.writeHead(404)

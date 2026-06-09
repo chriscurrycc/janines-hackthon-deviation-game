@@ -20,6 +20,20 @@ function wsUrl(): string {
   return `${proto}://${location.host}/ws`
 }
 
+/** Stable per-browser id so a rejoin reconnects to the same player slot (no duplicate). */
+function getClientId(): string {
+  try {
+    let id = localStorage.getItem('deviation:clientId')
+    if (!id) {
+      id = Math.random().toString(36).slice(2) + Date.now().toString(36)
+      localStorage.setItem('deviation:clientId', id)
+    }
+    return id
+  } catch {
+    return ''
+  }
+}
+
 export function useRoom() {
   const wsRef = useRef<WebSocket | null>(null)
   const drawHandlers = useRef<DrawHandlers>({})
@@ -73,11 +87,12 @@ export function useRoom() {
   }, [])
 
   const create = useCallback(
-    (name: string) => connect((ws) => ws.send(JSON.stringify({ t: 'create', name }))),
+    (name: string) => connect((ws) => ws.send(JSON.stringify({ t: 'create', name, clientId: getClientId() }))),
     [connect],
   )
   const join = useCallback(
-    (code: string, name: string) => connect((ws) => ws.send(JSON.stringify({ t: 'join', code, name }))),
+    (code: string, name: string) =>
+      connect((ws) => ws.send(JSON.stringify({ t: 'join', code, name, clientId: getClientId() }))),
     [connect],
   )
 

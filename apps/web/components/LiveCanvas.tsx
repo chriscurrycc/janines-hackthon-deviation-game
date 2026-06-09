@@ -11,7 +11,7 @@ export interface LiveCanvasHandle {
 }
 
 const W = 720
-const H = 540
+const H = 720 // square: gives portrait phones a much taller drawing area without distorting sync
 const COLORS = ['#2b2622', '#e8743b', '#3b7de8', '#4a9d6e', '#c0392b']
 
 interface Props {
@@ -92,8 +92,8 @@ export const LiveCanvas = forwardRef<LiveCanvasHandle, Props>(function LiveCanva
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="ink-box-dashed bg-[#fffdf7] p-1 shadow-[5px_6px_0_rgba(43,38,34,0.15)]">
+    <div className="drawpad flex flex-col gap-3">
+      <div className="ink-box-dashed bg-[#fffdf7] p-1 shadow-[5px_6px_0_rgba(43,38,34,0.15)] sm:max-w-[600px]">
         <canvas
           ref={canvasRef}
           width={W}
@@ -102,6 +102,7 @@ export const LiveCanvas = forwardRef<LiveCanvasHandle, Props>(function LiveCanva
           onPointerMove={move}
           onPointerUp={up}
           onPointerLeave={up}
+          onContextMenu={(e) => e.preventDefault()}
           className={`block w-full rounded-[10px] ${mode === 'draw' ? 'cursor-crosshair touch-none' : 'pointer-events-none'}`}
           style={{ aspectRatio: `${W} / ${H}` }}
         />

@@ -75,8 +75,8 @@ export interface RoomState {
 
 /** Client → server messages. */
 export type ClientMessage =
-  | { t: 'create'; name: string }
-  | { t: 'join'; code: string; name: string }
+  | { t: 'create'; name: string; clientId?: string }
+  | { t: 'join'; code: string; name: string; clientId?: string }
   | { t: 'start'; category: string }
   | { t: 'stroke'; stroke: Stroke }
   | { t: 'clear' }

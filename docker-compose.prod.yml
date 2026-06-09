@@ -11,6 +11,8 @@ services:
   web:
     image: ghcr.io/chriscurrycc/deviation-web:latest
     env_file: .env
+    environment:
+      - REALTIME_INTERNAL_URL=http://realtime:7243
     ports:
       - "127.0.0.1:7242:7242"
     restart: unless-stopped

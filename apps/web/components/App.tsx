@@ -13,6 +13,7 @@ const DRAW_SECONDS = 60
 
 export default function App() {
   const [mode, setMode] = useState<'menu' | 'solo' | 'multi'>('menu')
+  const [joinCode, setJoinCode] = useState<string | null>(null)
   const [phase, setPhase] = useState<Phase>('home')
   const [category, setCategory] = useState<Category>(categories[0])
   const [round, setRound] = useState<Round | null>(null)
@@ -23,6 +24,11 @@ export default function App() {
   const [aiScore, setAiScore] = useState(0)
 
   const canvasRef = useRef<DrawCanvasHandle>(null)
+
+  // Deep link: opening /?room=CODE jumps straight into multiplayer (code is prefilled there).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('room')) setMode('multi')
+  }, [])
 
   const startRound = useCallback((cat: Category) => {
     setCategory(cat)
@@ -66,9 +72,21 @@ export default function App() {
       <Marquee />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
-        {mode === 'menu' && <Menu onSolo={() => setMode('solo')} onMulti={() => setMode('multi')} />}
+        {mode === 'menu' && (
+          <Menu
+            onSolo={() => setMode('solo')}
+            onMulti={() => {
+              setJoinCode(null)
+              setMode('multi')
+            }}
+            onJoinRoom={(code) => {
+              setJoinCode(code)
+              setMode('multi')
+            }}
+          />
+        )}
 
-        {mode === 'multi' && <Multiplayer onExit={() => setMode('menu')} />}
+        {mode === 'multi' && <Multiplayer initialCode={joinCode} onExit={() => setMode('menu')} />}
 
         {mode === 'solo' && phase === 'home' && (
           <div>
@@ -126,7 +144,15 @@ export default function App() {
   )
 }
 
-function Menu({ onSolo, onMulti }: { onSolo: () => void; onMulti: () => void }) {
+function Menu({
+  onSolo,
+  onMulti,
+  onJoinRoom,
+}: {
+  onSolo: () => void
+  onMulti: () => void
+  onJoinRoom: (code: string) => void
+}) {
   return (
     <div className="mx-auto max-w-2xl py-8 text-center">
       <h1 className="font-hand text-6xl font-bold tracking-tight">DEVIATION GAME</h1>
@@ -152,6 +178,68 @@ function Menu({ onSolo, onMulti }: { onSolo: () => void; onMulti: () => void }) 
           <div className="mt-1 font-cn text-base text-ink/60">独自挑战 AI</div>
         </button>
       </div>
+
+      <ActiveRooms onJoin={onJoinRoom} />
+    </div>
+  )
+}
+
+interface RoomSummary {
+  code: string
+  phase: 'lobby' | 'draw' | 'reveal'
+  roundNo: number
+  players: number
+  category: string | null
+}
+
+function ActiveRooms({ onJoin }: { onJoin: (code: string) => void }) {
+  const [rooms, setRooms] = useState<RoomSummary[] | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    const load = async () => {
+      try {
+        const res = await fetch('/api/rooms', { cache: 'no-store' })
+        if (!res.ok) return
+        const data = (await res.json()) as RoomSummary[]
+        if (alive) setRooms(data)
+      } catch {
+        /* ignore transient errors */
+      }
+    }
+    void load()
+    const t = setInterval(load, 5000) // refresh so finished rooms drop off
+    return () => {
+      alive = false
+      clearInterval(t)
+    }
+  }, [])
+
+  if (rooms === null) return null // initial load — show nothing yet
+  return (
+    <div className="mx-auto mt-10 max-w-md text-left">
+      <div className="font-cn text-lg text-ink/60">🟢 当前活跃房间</div>
+      {rooms.length === 0 ? (
+        <div className="mt-2 font-cn text-ink/40">暂无进行中的房间，创建一个吧～</div>
+      ) : (
+        <div className="mt-2 grid gap-2">
+          {rooms.map((r) => (
+            <button
+              key={r.code}
+              onClick={() => onJoin(r.code)}
+              className="ink-box flex items-center justify-between bg-white px-4 py-3 font-cn transition hover:-translate-y-0.5 hover:bg-paper-deep"
+            >
+              <span className="flex items-baseline gap-2">
+                <b className="font-hand text-2xl tracking-widest">{r.code}</b>
+                <span className="text-sm text-ink/50">
+                  {r.phase === 'lobby' ? '等待中' : `第 ${r.roundNo} 局${r.category ? ` · ${r.category}` : ''}`}
+                </span>
+              </span>
+              <span className="text-sm text-ink/60">👤 {r.players} · 加入 →</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

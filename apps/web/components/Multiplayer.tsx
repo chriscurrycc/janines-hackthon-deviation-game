@@ -13,7 +13,90 @@ const CATS = [
   { id: 'action', label: '动作' },
 ]
 
-export function Multiplayer({ onExit }: { onExit: () => void }) {
+/** Shareable invite URL — opening it prefills the room code on the join screen. */
+function roomLink(code: string) {
+  return typeof window === 'undefined' ? '' : `${window.location.origin}/?room=${code}`
+}
+
+/** Read the room code from the current URL (?room=CODE), normalized to 4 chars. */
+function roomCodeFromUrl() {
+  if (typeof window === 'undefined') return ''
+  return (new URLSearchParams(window.location.search).get('room') || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 4)
+}
+
+// Remember the player's nickname locally so they don't retype it every time.
+const NAME_KEY = 'deviation:name'
+function loadName() {
+  if (typeof window === 'undefined') return ''
+  try {
+    return localStorage.getItem(NAME_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+function saveName(name: string) {
+  try {
+    localStorage.setItem(NAME_KEY, name)
+  } catch {
+    /* ignore (private mode / storage disabled) */
+  }
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text)
+      return true
+    }
+  } catch {
+    // fall through to the legacy path (e.g. plain-http LAN testing)
+  }
+  try {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.focus()
+    ta.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(ta)
+    return ok
+  } catch {
+    return false
+  }
+}
+
+function InviteLink({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false)
+  const link = roomLink(code)
+  return (
+    <div className="mt-3 flex items-center gap-2">
+      <input
+        readOnly
+        value={link}
+        onFocus={(e) => e.currentTarget.select()}
+        className="ink-box min-w-0 flex-1 bg-white px-3 py-2 text-left font-cn text-sm text-ink/70 outline-none"
+      />
+      <button
+        onClick={async () => {
+          if (await copyText(link)) {
+            setCopied(true)
+            setTimeout(() => setCopied(false), 1500)
+          }
+        }}
+        className="ink-box shrink-0 bg-orange px-4 py-2 font-cn text-white"
+      >
+        {copied ? '已复制 ✓' : '复制链接'}
+      </button>
+    </div>
+  )
+}
+
+export function Multiplayer({ onExit, initialCode }: { onExit: () => void; initialCode?: string | null }) {
   const net = useRoom()
   const canvasRef = useRef<LiveCanvasHandle>(null)
 
@@ -33,51 +116,115 @@ export function Multiplayer({ onExit }: { onExit: () => void }) {
     canvasRef.current?.clearLocal()
   }, [roundNo])
 
+  // Second confirmation before closing/refreshing the tab while in a room.
+  useEffect(() => {
+    if (net.status !== 'inroom') return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [net.status])
+
   if (net.status !== 'inroom' || !room) {
-    return <JoinScreen net={net} onExit={onExit} />
+    return <JoinScreen net={net} onExit={onExit} initialCode={initialCode} />
   }
   return <RoomView net={net} room={room} canvasRef={canvasRef} onExit={onExit} />
 }
 
-function JoinScreen({ net, onExit }: { net: ReturnType<typeof useRoom>; onExit: () => void }) {
-  const [name, setName] = useState('')
-  const [code, setCode] = useState('')
+function JoinScreen({
+  net,
+  onExit,
+  initialCode,
+}: {
+  net: ReturnType<typeof useRoom>
+  onExit: () => void
+  initialCode?: string | null
+}) {
+  const [name, setName] = useState(loadName)
+  const [code, setCode] = useState(() => initialCode || roomCodeFromUrl())
+  // Whether we arrived via an invite link or active-room click — captured once at mount.
+  const [invited] = useState(() => (initialCode || roomCodeFromUrl()).length === 4)
+
+  const doCreate = () => {
+    if (!name.trim()) return
+    saveName(name.trim())
+    net.create(name.trim())
+  }
+  const doJoin = (c: string) => {
+    if (!name.trim() || c.length < 4) return
+    saveName(name.trim())
+    net.join(c, name.trim())
+  }
+
   return (
     <div className="mx-auto max-w-md py-8 text-center">
       <h2 className="font-hand text-4xl font-bold">多人房间</h2>
       <p className="mt-2 font-cn text-lg text-ink/60">一人画，其他人和 AI 一起抢答，谁先猜对谁赢</p>
       {net.error && <div className="mt-3 font-cn text-orange">{net.error}</div>}
+
+      {invited && (
+        <div className="ink-box mt-4 bg-orange/10 px-4 py-2 font-cn text-ink/70">
+          🔗 受邀加入房间 <b className="font-hand text-xl tracking-widest text-orange">{code}</b> · 填昵称即可加入
+        </div>
+      )}
+
       <input
+        autoFocus
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="你的昵称"
         maxLength={12}
         className="ink-box mt-5 w-full bg-white px-4 py-3 text-center font-cn text-xl outline-none"
       />
-      <button
-        onClick={() => name.trim() && net.create(name.trim())}
-        disabled={!name.trim()}
-        className="ink-box mt-4 w-full bg-orange px-4 py-3 font-cn text-xl text-white shadow-[4px_5px_0_rgba(43,38,34,0.2)] disabled:opacity-40"
-      >
-        🆕 创建房间
-      </button>
-      <div className="mt-6 font-cn text-ink/40">— 或 加入已有房间 —</div>
-      <div className="mt-3 flex gap-2">
-        <input
-          value={code}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder="房间码"
-          maxLength={4}
-          className="ink-box w-32 bg-white px-3 py-3 text-center font-hand text-2xl tracking-widest outline-none"
-        />
-        <button
-          onClick={() => name.trim() && code.trim() && net.join(code.trim(), name.trim())}
-          disabled={!name.trim() || code.length < 4}
-          className="ink-box flex-1 bg-ink px-4 py-3 font-cn text-xl text-paper disabled:opacity-40"
-        >
-          加入 →
-        </button>
-      </div>
+
+      {invited ? (
+        <>
+          <button
+            onClick={() => doJoin(code)}
+            disabled={!name.trim()}
+            className="ink-box mt-4 w-full bg-orange px-4 py-3 font-cn text-xl text-white shadow-[4px_5px_0_rgba(43,38,34,0.2)] disabled:opacity-40"
+          >
+            加入房间 {code} →
+          </button>
+          <button
+            onClick={doCreate}
+            disabled={!name.trim()}
+            className="ink-box mt-3 w-full bg-white px-4 py-3 font-cn text-lg disabled:opacity-40"
+          >
+            🆕 或创建新房间
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            onClick={doCreate}
+            disabled={!name.trim()}
+            className="ink-box mt-4 w-full bg-orange px-4 py-3 font-cn text-xl text-white shadow-[4px_5px_0_rgba(43,38,34,0.2)] disabled:opacity-40"
+          >
+            🆕 创建房间
+          </button>
+          <div className="mt-6 font-cn text-ink/40">— 或 加入已有房间 —</div>
+          <div className="mt-3 flex gap-2">
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              placeholder="房间码"
+              maxLength={4}
+              className="ink-box w-32 bg-white px-3 py-3 text-center font-hand text-2xl tracking-widest outline-none"
+            />
+            <button
+              onClick={() => doJoin(code.trim())}
+              disabled={!name.trim() || code.length < 4}
+              className="ink-box flex-1 bg-ink px-4 py-3 font-cn text-xl text-paper disabled:opacity-40"
+            >
+              加入 →
+            </button>
+          </div>
+        </>
+      )}
+
       <button onClick={onExit} className="mt-6 font-cn text-ink/50 underline">
         ← 返回
       </button>
@@ -110,6 +257,12 @@ function RoomView({
     setSubmitted(false)
   }, [room.roundNo])
 
+  // The AI is a pseudo-player; its `guessed` flag tells us it has finished thinking.
+  const aiGuessed = room.players.some((p) => p.isAI && p.guessed)
+  const waitingHumans = room.players.filter(
+    (p) => !p.isAI && !p.isDrawer && p.connected && !p.guessed,
+  ).length
+
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-[210px_1fr]">
       {/* left rail */}
@@ -122,7 +275,12 @@ function RoomView({
         {room.players.map((p) => (
           <PlayerCard key={p.id} p={p} winner={room.winnerId === p.id} />
         ))}
-        <button onClick={onExit} className="mt-2 font-cn text-sm text-ink/40 underline">
+        <button
+          onClick={() => {
+            if (window.confirm('确定要离开房间吗？')) onExit()
+          }}
+          className="mt-2 font-cn text-sm text-ink/40 underline"
+        >
           ← 离开房间
         </button>
       </div>
@@ -154,7 +312,7 @@ function RoomView({
             />
 
             {room.phase === 'draw' && room.youAreDrawer && (
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="font-cn text-base text-ink/60">画得人懂、AI 懵 😈 画好了就喊 AI 来猜</p>
                 <button
                   disabled={submitted}
@@ -162,9 +320,15 @@ function RoomView({
                     setSubmitted(true)
                     net.send({ t: 'submitDrawing', image: canvasRef.current?.toDataURL() })
                   }}
-                  className="ink-box bg-ink px-6 py-3 font-cn text-xl text-paper shadow-[4px_5px_0_rgba(232,116,59,0.5)] disabled:opacity-50"
+                  className="ink-box shrink-0 bg-ink px-6 py-3 font-cn text-xl text-paper shadow-[4px_5px_0_rgba(232,116,59,0.5)] disabled:opacity-50"
                 >
-                  {submitted ? 'AI 思考中…' : '让 AI 来猜 →'}
+                  {!submitted
+                    ? '让 AI 来猜 →'
+                    : aiGuessed
+                      ? waitingHumans > 0
+                        ? `🤖 已答 · 还差 ${waitingHumans} 人作答`
+                        : '🤖 已答 · 等待中…'
+                      : 'AI 思考中…'}
                 </button>
               </div>
             )}
@@ -182,11 +346,12 @@ function RoomView({
 }
 
 function PlayerCard({ p, winner }: { p: NetPlayer; winner: boolean }) {
+  const offline = !p.isAI && !p.connected
   return (
     <div
-      className={`ink-box flex items-center gap-2 px-3 py-2 ${
+      className={`ink-box flex items-center gap-2 px-3 py-2 transition ${
         winner ? 'bg-win/20' : p.isAI ? 'bg-orange/10' : 'bg-paper'
-      }`}
+      } ${offline ? 'opacity-50 grayscale' : ''}`}
     >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-ink bg-white text-xl">
         {p.emoji}
@@ -194,6 +359,7 @@ function PlayerCard({ p, winner }: { p: NetPlayer; winner: boolean }) {
       <div className="min-w-0 flex-1">
         <div className="truncate font-cn leading-tight">
           {p.name} {p.isDrawer && '✏️'} {winner && '🏆'}
+          {offline && <span className="ml-1 text-xs text-ink/40">· 离线</span>}
         </div>
         {p.isAI && <div className="text-xs text-orange">别让它猜到</div>}
       </div>
@@ -211,6 +377,10 @@ function Lobby({ net, room, isHost }: { net: ReturnType<typeof useRoom>; room: R
       <p className="mt-2 font-cn text-lg text-ink/60">
         把房间码 <b className="font-hand text-xl tracking-widest">{room.code}</b> 发给朋友，越多人越好玩（{humans.length} 人已加入）
       </p>
+      <div className="mx-auto mt-2 max-w-sm">
+        <div className="font-cn text-sm text-ink/50">或直接发邀请链接（打开即自动填码）：</div>
+        <InviteLink code={room.code} />
+      </div>
       {isHost ? (
         <>
           <p className="mt-5 font-cn text-lg">选类别开第一局：</p>

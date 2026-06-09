@@ -23,8 +23,9 @@ export const DrawCanvas = forwardRef<DrawCanvasHandle, { disabled?: boolean }>(f
   const [eraser, setEraser] = useState(false)
 
   // Backing store is fixed-resolution so exported images are consistent.
+  // Square gives portrait phones a much taller drawing area.
   const W = 720
-  const H = 540
+  const H = 720
 
   function ctx() {
     return canvasRef.current!.getContext('2d')!
@@ -90,8 +91,8 @@ export const DrawCanvas = forwardRef<DrawCanvasHandle, { disabled?: boolean }>(f
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="ink-box-dashed bg-[#fffdf7] p-1 shadow-[5px_6px_0_rgba(43,38,34,0.15)]">
+    <div className="drawpad flex flex-col gap-3">
+      <div className="ink-box-dashed bg-[#fffdf7] p-1 shadow-[5px_6px_0_rgba(43,38,34,0.15)] sm:max-w-[600px]">
         <canvas
           ref={canvasRef}
           width={W}
@@ -100,6 +101,7 @@ export const DrawCanvas = forwardRef<DrawCanvasHandle, { disabled?: boolean }>(f
           onPointerMove={move}
           onPointerUp={up}
           onPointerLeave={up}
+          onContextMenu={(e) => e.preventDefault()}
           className={`block w-full rounded-[10px] ${disabled ? 'cursor-not-allowed' : 'cursor-crosshair touch-none'}`}
           style={{ aspectRatio: `${W} / ${H}` }}
         />

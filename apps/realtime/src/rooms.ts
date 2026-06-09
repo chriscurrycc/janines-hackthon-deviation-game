@@ -24,6 +24,7 @@ interface ServerPlayer {
   score: number
   connected: boolean
   ws: WebSocket | null
+  clientId: string // stable per-browser id, so a rejoin reconnects instead of duplicating
 }
 
 interface GuessRecord {
@@ -243,16 +244,36 @@ export function handleMessage(conn: Connection, ws: WebSocket, raw: string) {
       send(ws, { t: 'error', message: '房间不存在' })
       return
     }
+    const clientId = typeof msg.clientId === 'string' ? msg.clientId : ''
+    const name = String(msg.name || '玩家').slice(0, 12)
+
+    // Reconnect: the same browser (clientId) rejoining a room it already has a slot in —
+    // reuse the existing player so the score is kept and no duplicate (greyed) card appears.
+    const existing = clientId ? [...room.players.values()].find((p) => p.clientId === clientId) : undefined
+    if (existing) {
+      existing.connected = true
+      existing.ws = ws
+      existing.name = name
+      conn.myId = existing.id
+      conn.myRoom = room
+      if (!room.hostId) room.hostId = existing.id
+      send(ws, { t: 'joined', id: existing.id, code })
+      if (room.strokes.length) send(ws, { t: 'replay', strokes: room.strokes })
+      pushState(room)
+      return
+    }
+
     conn.myId = id()
     conn.myRoom = room
     const emoji = ANIMALS[room.players.size % ANIMALS.length]
     room.players.set(conn.myId, {
       id: conn.myId,
-      name: String(msg.name || '玩家').slice(0, 12),
+      name,
       emoji,
       score: 0,
       connected: true,
       ws,
+      clientId,
     })
     room.order.push(conn.myId)
     if (!room.hostId) room.hostId = conn.myId
@@ -297,6 +318,31 @@ export function handleMessage(conn: Connection, ws: WebSocket, raw: string) {
       if (myId === room.hostId) startRound(room, room.category?.id)
       break
   }
+}
+
+export interface RoomSummary {
+  code: string
+  phase: Room['phase']
+  roundNo: number
+  players: number
+  category: string | null
+}
+
+/** Public list of active rooms (at least one connected human) for the homepage. */
+export function listRooms(): RoomSummary[] {
+  const out: RoomSummary[] = []
+  for (const room of rooms.values()) {
+    const players = [...room.players.values()].filter((p) => p.connected).length
+    if (players === 0) continue
+    out.push({
+      code: room.code,
+      phase: room.phase,
+      roundNo: room.roundNo,
+      players,
+      category: room.category?.label ?? null,
+    })
+  }
+  return out
 }
 
 export function handleClose(conn: Connection) {
