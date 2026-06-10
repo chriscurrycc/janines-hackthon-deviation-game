@@ -8,6 +8,7 @@ on:
     # Docs-only commits don't change the images — skip the build.
     paths-ignore:
       - 'docs/**'
+      - 'roadshow/**'
       - '**.md'
   workflow_dispatch:
 

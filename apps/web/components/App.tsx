@@ -158,9 +158,11 @@ function Menu({
       <h1 className="font-hand text-6xl font-bold tracking-tight">DEVIATION GAME</h1>
       <p className="mt-3 font-cn text-2xl">骗过 AI · 人机斗智你画我猜</p>
       <div className="ink-box mx-auto mt-6 max-w-xl bg-paper-deep/60 px-5 py-4 font-cn text-lg leading-relaxed">
-        一人画画，<b>其他人和 AI 一起抢答</b>。画得让人懂、AI 懵——
+        给你一个词，<b>画得让人恍然大悟，但 AI 一脸懵逼</b>。
         <br />
-        谁先猜对谁赢；AI 抢先猜对 → <b className="text-orange">HUMANS LOSE</b>。
+        AI 猜对 → <b className="text-orange">HUMANS LOSE</b>；AI 猜错 → <b className="text-orange">HUMANS WIN</b>。
+        <br />
+        靠抽象、梗、留白和反常识去糊弄 AI 吧！
       </div>
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         <button
