@@ -323,7 +323,7 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
         <ul class="bullets ai r" style="--d:2">
           <li><span class="ic">📊</span><div>每次识别，AI 给出 <b>0–100 的信心值</b> + 一句<b>理由</b>。</div></li>
           <li><span class="ic">🎭</span><div>它把对抗<b>可视化</b>了：AI 80% 笃定选「苹果」却猜错 → 全场欢呼。</div></li>
-          <li><span class="ic">⚖️</span><div>它<b>既是对手也是裁判</b>——它的对错，直接决定这一局的计分。</div></li>
+          <li><span class="ic">⚖️</span><div>这是一场<b>与 AI 的竞赛</b>——它的对错，直接决定这一局的计分。</div></li>
         </ul>
         <div class="schema r" style="--d:3">结构化输出 · JSON Schema<br/>{ <span class="k">guess</span>: 四选一, <span class="k">confidence</span>: 0–100, <span class="k">reasoning</span>: 理由 }</div>
       </div>
@@ -387,7 +387,7 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
           <ul class="mini">
             <li>两种玩法：<b>单人挑战</b>（自己对抗 AI）与<b>多人房间</b>（一桌人一起玩）。</li>
             <li>多人玩法发生在<b>房间</b>里：实时同步每个人的操作，并完成计分。</li>
-            <li><b>AI 对手</b>贯穿两种玩法——既是对手，也是「画到底骗没骗过它」的裁判。</li>
+            <li><b>AI 对手</b>贯穿两种玩法——你与它<b>同场竞赛</b>，比谁更会猜。</li>
           </ul>
         </div>
       </div>
@@ -528,47 +528,58 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
   </section>
 
   <!-- ===== 4b 100 人扩展 ===== -->
-  <section class="slide top" data-chapter="3">
+  <section class="slide" data-chapter="3">
+    <div style="margin:auto 0;width:100%">
     <span class="kicker r" style="--d:0"><span class="num">4</span> 技术架构 · 如果 100 人同时玩？</span>
     <h2 class="r" style="--d:1">现在<span class="hl">毫无压力</span>，未来还能<span class="hl-ai">平滑长大</span></h2>
-    <div class="cols r" style="--d:2;margin-top:24px;align-items:stretch">
-      <div class="card" style="border-color:var(--human);border-width:1.8px">
-        <p style="font-weight:900;font-size:18px;margin-bottom:12px">🧭 产品设计 · 把人「分流」</p>
-        <ul class="mini">
-          <li><b>「当前在线房间列表」</b>就是天然的<b>分流入口</b>。</li>
-          <li>高并发时把人<b>自然铺开</b>到多个房间，每房保持「人数刚好、体验最好」。</li>
-          <li>后续做<b>智能推荐 / 自动开新房</b>，确保高峰也不掉体验。</li>
+    <p class="lead r" style="--d:2;margin-top:14px;max-width:none">从「能玩」到「能扛住很多人玩还不停机」，产品和技术各有一条优化路线 👇</p>
+    <div class="cols r" style="--d:3;margin-top:30px;align-items:stretch;gap:clamp(24px,3vw,52px)">
+      <div class="card" style="border-color:var(--human);border-width:2px;padding:clamp(24px,2.6vw,34px)">
+        <div style="font-size:40px">🧭</div>
+        <p style="font-weight:900;font-size:22px;margin:12px 0 16px">产品设计 · 把人「分流」</p>
+        <ul class="mini" style="gap:15px">
+          <li style="font-size:15.5px"><b>「当前在线房间列表」</b>就是天然的<b>分流入口</b>。</li>
+          <li style="font-size:15.5px">高并发时把人<b>自然铺开</b>到多个房间，每房保持「人数刚好、体验最好」。</li>
+          <li style="font-size:15.5px">后续做<b>智能推荐 / 自动开新房</b>，确保高峰也不掉体验。</li>
         </ul>
       </div>
-      <div class="card" style="border-color:var(--ai);border-width:1.8px">
-        <p style="font-weight:900;font-size:18px;margin-bottom:12px">🏗️ 技术架构 · 让系统「长大」</p>
-        <ul class="mini">
-          <li><b>现在 100 人毫无压力</b>：单进程轻松扛几千条连接。</li>
-          <li>要「做大 / 稳定 / 不停机」时：房间进度现记在<b>单服务内存</b>，一重启就丢局 → 搬到<b>共享记忆库 Redis</b>，重启升级对玩家<b>无感</b>。</li>
-          <li>实时服务可<b>横向扩展</b>多实例，一起分担「主持人」。</li>
-          <li>AI 调用加<b>限流 / 重试 / 排队</b>，避免多房间同时打 AI 卡死。</li>
+      <div class="card" style="border-color:var(--ai);border-width:2px;padding:clamp(24px,2.6vw,34px)">
+        <div style="font-size:40px">🏗️</div>
+        <p style="font-weight:900;font-size:22px;margin:12px 0 16px">技术架构 · 让系统「长大」</p>
+        <ul class="mini" style="gap:15px">
+          <li style="font-size:15.5px"><b>现在 100 人毫无压力</b>：单进程轻松扛几千条连接。</li>
+          <li style="font-size:15.5px">内存 → <b>共享记忆库 Redis</b>：重启升级也不丢正在进行的局，对玩家<b>无感</b>。</li>
+          <li style="font-size:15.5px">实时服务<b>横向扩展</b>多实例，一起分担「主持人」。</li>
+          <li style="font-size:15.5px">AI 调用加<b>限流 / 重试 / 排队</b>，避免多房间同时打 AI 卡死。</li>
         </ul>
       </div>
+    </div>
     </div>
   </section>
 
   <!-- ===== 5 AI 的角色 ===== -->
-  <section class="slide top" data-chapter="4">
+  <section class="slide" data-chapter="4">
+    <div style="margin:auto 0;width:100%">
     <span class="kicker r" style="--d:0"><span class="num">5</span> AI 的角色 · 贯穿始终</span>
     <h2 class="r" style="--d:1">AI 在这个项目里，扮演了<span class="hl">两种角色</span></h2>
-    <div class="cols r" style="--d:2;margin-top:24px;align-items:stretch">
-      <div class="card" style="border-color:var(--human);border-width:1.8px">
-        <div style="font-size:30px">🎭</div>
-        <p style="font-weight:900;font-size:19px;margin:8px 0 10px">台前 · 游戏的灵魂</p>
-        <p class="lead" style="font-size:15px">在玩法层面，AI 是<b>被挑战的对手</b>。游戏的核心乐趣，就是用<span class="hl">人类的共识与通感</span>去打败它——没有 AI，这个游戏就不成立。</p>
+    <div class="cols r" style="--d:2;margin-top:34px;align-items:stretch;gap:clamp(24px,3vw,52px)">
+      <div class="card" style="border-color:var(--human);border-width:2px;padding:clamp(28px,3vw,40px)">
+        <div style="font-size:48px">🎭</div>
+        <p style="font-weight:900;font-size:24px;margin:16px 0 14px">台前 · 游戏的灵魂</p>
+        <p class="lead" style="font-size:16.5px;line-height:1.8">在玩法层面，AI 是<b>被挑战的对手</b>。游戏的核心乐趣，就是用<span class="hl">人类的共识与通感</span>去打败它——<b>没有 AI，这个游戏就不成立</b>。</p>
       </div>
-      <div class="card" style="border-color:var(--ai);border-width:1.8px">
-        <div style="font-size:30px">🛠️</div>
-        <p style="font-weight:900;font-size:19px;margin:8px 0 10px">幕后 · 开发的搭档</p>
-        <p class="lead" style="font-size:15px">在工程层面，AI 当了<b>参谋 + 程序员</b>：一起想清<span class="hl-ai">「为何拆两个服务」</span>等架构取舍、写代码、写技术文档——把想法快速变成能跑的产品。</p>
+      <div class="card" style="border-color:var(--ai);border-width:2px;padding:clamp(28px,3vw,40px)">
+        <div style="font-size:48px">🛠️</div>
+        <p style="font-weight:900;font-size:24px;margin:16px 0 14px">幕后 · 开发的搭档</p>
+        <p class="lead" style="font-size:16.5px;line-height:1.8">在工程层面，AI 当了<b>参谋 + 程序员</b>：一起想清<span class="hl-ai">「为何拆两个服务」</span>等架构取舍、写代码、写技术文档——<b>把想法快速变成能跑的产品</b>。</p>
       </div>
     </div>
-    <p class="lead r" style="--d:4;margin-top:22px;text-align:center;max-width:none">既是<b class="hl">台前的对手</b>，也是<b class="hl-ai">幕后的搭档</b>——AI 贯穿了这个项目的「玩」与「做」。</p>
+    <div class="r" style="--d:4;margin-top:28px;text-align:center">
+      <span style="display:inline-block;background:var(--card);border:1.8px solid var(--ink);border-radius:999px;padding:13px 28px;box-shadow:3px 3px 0 var(--ink);font-size:16.5px;font-weight:700">
+        既是 <span class="hl">台前的对手</span>，也是 <span class="hl-ai">幕后的搭档</span> — AI 贯穿了这个项目的「玩」与「做」
+      </span>
+    </div>
+    </div>
   </section>
 
   <!-- ===== 6 总结升华 ===== -->
