@@ -40,7 +40,6 @@ export interface NetPlayer {
   id: string
   name: string
   emoji: string
-  score: number
   connected: boolean
   isDrawer?: boolean
   isAI?: boolean
@@ -54,10 +53,13 @@ export interface AIGuessInfo {
   mock?: boolean
 }
 
+/** How a game ends: a fixed number of rounds, or first-to-target-score. */
+export type GameMode = 'rounds' | 'score'
+
 /** The per-viewer public room snapshot pushed by the realtime server. */
 export interface RoomState {
   code: string
-  phase: 'lobby' | 'draw' | 'reveal'
+  phase: 'lobby' | 'draw' | 'reveal' | 'ended'
   roundNo: number
   hostId: string
   drawerId: string | null
@@ -70,19 +72,26 @@ export interface RoomState {
   winnerId: string | null
   aiGuess: AIGuessInfo | null
   guesses: Record<string, string>
+  /** Team scores: humans (collectively) vs the AI. */
+  humanScore: number
   aiScore: number
+  mode: GameMode
+  maxRounds: number
+  targetScore: number
 }
 
 /** Client → server messages. */
 export type ClientMessage =
   | { t: 'create'; name: string; clientId?: string }
   | { t: 'join'; code: string; name: string; clientId?: string }
-  | { t: 'start'; category: string }
+  | { t: 'start'; category: string; mode: GameMode; rounds?: number; target?: number }
   | { t: 'stroke'; stroke: Stroke }
   | { t: 'clear' }
   | { t: 'guess'; choice: string }
   | { t: 'submitDrawing'; image: string }
   | { t: 'next' }
+  | { t: 'end' }
+  | { t: 'lobby' }
 
 /** Server → client messages. */
 export type ServerMessage =

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { LiveCanvas, type LiveCanvasHandle } from '@/components/LiveCanvas'
 import { ConfidenceBar } from '@/components/ConfidenceBar'
 import { useRoom } from '@/lib/useRoom'
-import type { NetPlayer, RoomState } from '@deviation/shared'
+import type { GameMode, NetPlayer, RoomState } from '@deviation/shared'
 
 const CATS = [
   { id: 'creature', label: '生物' },
@@ -271,7 +271,14 @@ function RoomView({
           <div className="font-cn text-sm text-ink/60">房间码</div>
           <div className="font-hand text-3xl font-bold tracking-[0.3em]">{room.code}</div>
         </div>
-        <div className="font-cn text-ink/60">第 {room.roundNo || '-'} 局</div>
+        <div className="font-cn text-ink/60">
+          {room.roundNo > 0
+            ? room.mode === 'score'
+              ? `第 ${room.roundNo} 局 · 目标 ${room.targetScore} 分`
+              : `第 ${room.roundNo} / ${room.maxRounds} 局`
+            : '第 - 局'}
+        </div>
+        {room.phase !== 'lobby' && <TeamScore room={room} />}
         {room.players.map((p) => (
           <PlayerCard key={p.id} p={p} winner={room.winnerId === p.id} />
         ))}
@@ -289,7 +296,9 @@ function RoomView({
       <div className="flex flex-col gap-4">
         {room.phase === 'lobby' && <Lobby net={net} room={room} isHost={isHost} />}
 
-        {room.phase !== 'lobby' && (
+        {room.phase === 'ended' && <GameOver net={net} room={room} isHost={isHost} />}
+
+        {(room.phase === 'draw' || room.phase === 'reveal') && (
           <>
             <div className="flex items-center justify-between">
               <div className="font-cn text-xl">
@@ -345,6 +354,23 @@ function RoomView({
   )
 }
 
+// Team scoreboard: humans (collectively) vs the AI.
+function TeamScore({ room }: { room: RoomState }) {
+  return (
+    <div className="ink-box flex items-stretch overflow-hidden bg-white text-center font-cn">
+      <div className="flex-1 bg-win/15 px-2 py-2">
+        <div className="text-xs text-ink/50">🧑 人类</div>
+        <div className="font-hand text-3xl font-bold text-win">{room.humanScore}</div>
+      </div>
+      <div className="flex items-center px-1 font-hand text-sm text-ink/40">VS</div>
+      <div className="flex-1 bg-orange/15 px-2 py-2">
+        <div className="text-xs text-ink/50">🤖 AI</div>
+        <div className="font-hand text-3xl font-bold text-orange">{room.aiScore}</div>
+      </div>
+    </div>
+  )
+}
+
 function PlayerCard({ p, winner }: { p: NetPlayer; winner: boolean }) {
   const offline = !p.isAI && !p.connected
   return (
@@ -364,13 +390,48 @@ function PlayerCard({ p, winner }: { p: NetPlayer; winner: boolean }) {
         {p.isAI && <div className="text-xs text-orange">别让它猜到</div>}
       </div>
       {p.guessed ? <span className="text-sm">✅</span> : null}
-      <div className="font-hand text-xl font-bold">{p.score}</div>
     </div>
+  )
+}
+
+function Stepper({
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  value: number
+  min: number
+  max: number
+  onChange: (n: number) => void
+}) {
+  return (
+    <span className="ink-box inline-flex items-center gap-2 bg-white px-2 py-0.5">
+      <button
+        onClick={() => onChange(Math.max(min, value - 1))}
+        className="px-2 font-hand text-2xl leading-none"
+        aria-label="减少"
+      >
+        −
+      </button>
+      <b className="min-w-[2ch] text-center font-hand text-2xl tabular-nums">{value}</b>
+      <button
+        onClick={() => onChange(Math.min(max, value + 1))}
+        className="px-2 font-hand text-2xl leading-none"
+        aria-label="增加"
+      >
+        +
+      </button>
+    </span>
   )
 }
 
 function Lobby({ net, room, isHost }: { net: ReturnType<typeof useRoom>; room: RoomState; isHost: boolean }) {
   const humans = room.players.filter((p) => !p.isAI)
+  const [mode, setMode] = useState<GameMode>('rounds')
+  const [rounds, setRounds] = useState(6)
+  const [target, setTarget] = useState(10)
+
   return (
     <div className="ink-box bg-white/60 p-6 text-center">
       <div className="font-hand text-3xl font-bold">等待开始</div>
@@ -383,12 +444,39 @@ function Lobby({ net, room, isHost }: { net: ReturnType<typeof useRoom>; room: R
       </div>
       {isHost ? (
         <>
-          <p className="mt-5 font-cn text-lg">选类别开第一局：</p>
+          <div className="mt-6 flex justify-center gap-2">
+            <button
+              onClick={() => setMode('rounds')}
+              className={`ink-box px-4 py-2 font-cn ${mode === 'rounds' ? 'bg-ink text-paper' : 'bg-white'}`}
+            >
+              固定局数
+            </button>
+            <button
+              onClick={() => setMode('score')}
+              className={`ink-box px-4 py-2 font-cn ${mode === 'score' ? 'bg-ink text-paper' : 'bg-white'}`}
+            >
+              抢分模式
+            </button>
+          </div>
+
+          <div className="mt-3 flex items-center justify-center gap-2 font-cn text-lg">
+            {mode === 'rounds' ? (
+              <>
+                共 <Stepper value={rounds} min={1} max={50} onChange={setRounds} /> 局
+              </>
+            ) : (
+              <>
+                先到 <Stepper value={target} min={2} max={100} onChange={setTarget} /> 分获胜
+              </>
+            )}
+          </div>
+
+          <p className="mt-5 font-cn text-lg">选类别开始：</p>
           <div className="mt-3 flex flex-wrap justify-center gap-3">
             {CATS.map((c) => (
               <button
                 key={c.id}
-                onClick={() => net.send({ t: 'start', category: c.id })}
+                onClick={() => net.send({ t: 'start', category: c.id, mode, rounds, target })}
                 className="ink-box bg-white px-5 py-3 font-cn text-xl hover:bg-orange hover:text-white"
               >
                 {c.label}
@@ -397,7 +485,7 @@ function Lobby({ net, room, isHost }: { net: ReturnType<typeof useRoom>; room: R
           </div>
         </>
       ) : (
-        <p className="mt-5 font-cn text-lg text-ink/50">等房主开始…</p>
+        <p className="mt-5 font-cn text-lg text-ink/50">等房主设置并开始…</p>
       )}
     </div>
   )
@@ -429,27 +517,55 @@ function GuessBar({ room, onGuess }: { room: RoomState; onGuess: (c: string) => 
 }
 
 function Reveal({ net, room, isHost }: { net: ReturnType<typeof useRoom>; room: RoomState; isHost: boolean }) {
-  const humansLose = room.winnerId === 'ai'
+  // Round outcome by the team rule (human camp vs AI).
+  const humanCorrect = room.players.some(
+    (p) => !p.isAI && !p.isDrawer && room.guesses[p.id] === room.target,
+  )
+  const aiCorrect = room.aiGuess?.guess === room.target
   const winnerName = nameOf(room.players, room.winnerId)
+
+  let stamp: string
+  let stampColor: string
+  let delta: string
+  if (humanCorrect && !aiCorrect) {
+    stamp = 'HUMANS WIN!'
+    stampColor = 'text-win'
+    delta = '人类完胜 · 人类阵营 +2'
+  } else if (humanCorrect && aiCorrect) {
+    stamp = '都猜对了'
+    stampColor = 'text-ink'
+    delta = '人类 +1 · AI +1'
+  } else if (!humanCorrect && aiCorrect) {
+    stamp = 'HUMANS LOSE'
+    stampColor = 'text-orange'
+    delta = '🤖 AI 暴击 · AI 阵营 +3'
+  } else {
+    stamp = '无人猜中'
+    stampColor = 'text-ink/50'
+    delta = '双输 · 这题太难，0 分'
+  }
+
+  const isFinal =
+    room.mode === 'score'
+      ? room.humanScore >= room.targetScore || room.aiScore >= room.targetScore
+      : room.roundNo >= room.maxRounds
+
   return (
     <div className="relative">
       <div
-        className={`animate-stamp pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 font-hand text-5xl font-bold ${
-          humansLose ? 'text-orange' : 'text-win'
-        }`}
+        className={`animate-stamp pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 font-hand text-5xl font-bold ${stampColor}`}
         style={{ textShadow: '3px 3px 0 rgba(43,38,34,0.18)' }}
       >
-        {humansLose ? 'HUMANS LOSE' : room.winnerId ? 'HUMANS WIN!' : '无人猜中'}
+        {stamp}
       </div>
 
       <div className="ink-box mt-10 bg-white/70 p-5">
         <div className="text-center font-cn text-xl">
           答案是 <b className="font-hand text-3xl">{room.target}</b>
         </div>
+        <div className="mt-1 text-center font-cn text-lg text-ink/70">{delta}</div>
         {room.winnerId && (
-          <div className="mt-1 text-center font-cn text-lg">
-            🏆 <b>{winnerName}</b> 抢答最快！
-          </div>
+          <div className="mt-1 text-center font-cn text-sm text-ink/50">🏆 {winnerName} 最快猜对</div>
         )}
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -491,15 +607,93 @@ function Reveal({ net, room, isHost }: { net: ReturnType<typeof useRoom>; room: 
         </div>
 
         <div className="mt-5 text-center">
+          <div className="mb-2 font-cn text-sm text-ink/50">
+            {room.mode === 'rounds'
+              ? `第 ${room.roundNo} / ${room.maxRounds} 局`
+              : `抢分 · 先到 ${room.targetScore} 分`}
+            <span className="mx-1">·</span>
+            <span className="text-win">人类 {room.humanScore}</span> :{' '}
+            <span className="text-orange">{room.aiScore} AI</span>
+          </div>
+          {isHost ? (
+            isFinal ? (
+              <button
+                onClick={() => net.send({ t: 'end' })}
+                className="ink-box bg-win px-6 py-2.5 font-cn text-lg text-white shadow-[4px_5px_0_rgba(43,38,34,0.2)]"
+              >
+                🏁 查看最终结果
+              </button>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={() => net.send({ t: 'next' })}
+                  className="ink-box bg-orange px-6 py-2.5 font-cn text-lg text-white shadow-[4px_5px_0_rgba(43,38,34,0.2)]"
+                >
+                  下一局（轮换画手）→
+                </button>
+                <button onClick={() => net.send({ t: 'end' })} className="font-cn text-sm text-ink/40 underline">
+                  提前结束游戏
+                </button>
+              </div>
+            )
+          ) : (
+            <span className="font-cn text-ink/50">{isFinal ? '等房主结算…' : '等房主开下一局…'}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function GameOver({ net, room, isHost }: { net: ReturnType<typeof useRoom>; room: RoomState; isHost: boolean }) {
+  const human = room.humanScore
+  const ai = room.aiScore
+  const tie = human === ai
+  const humansWin = human > ai
+
+  return (
+    <div className="relative">
+      <div
+        className={`animate-stamp pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 font-hand text-5xl font-bold ${
+          tie ? 'text-ink' : humansWin ? 'text-win' : 'text-orange'
+        }`}
+        style={{ textShadow: '3px 3px 0 rgba(43,38,34,0.18)' }}
+      >
+        {tie ? 'DRAW' : humansWin ? 'HUMANS WIN' : 'AI WINS'}
+      </div>
+
+      <div className="ink-box mt-10 bg-white/70 p-5 text-center">
+        <div className="font-hand text-3xl font-bold">🏁 最终比分</div>
+        <div className="mt-1 font-cn text-sm text-ink/50">
+          {room.mode === 'rounds' ? `共 ${room.maxRounds} 局` : `抢分 · 目标 ${room.targetScore} 分`}
+        </div>
+
+        <div className="mx-auto mt-5 flex max-w-sm items-stretch gap-2">
+          <div className={`ink-box flex-1 px-3 py-4 ${humansWin && !tie ? 'bg-win/25' : 'bg-win/10'}`}>
+            <div className="font-cn text-ink/60">🧑 人类阵营</div>
+            <div className="font-hand text-5xl font-bold text-win">{human}</div>
+          </div>
+          <div className="flex items-center font-hand text-ink/40">VS</div>
+          <div className={`ink-box flex-1 px-3 py-4 ${!humansWin && !tie ? 'bg-orange/25' : 'bg-orange/10'}`}>
+            <div className="font-cn text-ink/60">🤖 AI 阵营</div>
+            <div className="font-hand text-5xl font-bold text-orange">{ai}</div>
+          </div>
+        </div>
+
+        <div className="mt-4 font-cn text-lg">
+          {tie ? '🤝 平局！' : humansWin ? '🎉 人类阵营获胜！' : '😈 AI 阵营获胜…'}
+        </div>
+
+        <div className="mt-5">
           {isHost ? (
             <button
-              onClick={() => net.send({ t: 'next' })}
+              onClick={() => net.send({ t: 'lobby' })}
               className="ink-box bg-orange px-6 py-2.5 font-cn text-lg text-white shadow-[4px_5px_0_rgba(43,38,34,0.2)]"
             >
-              下一局（轮换画手）→
+              🔄 再玩一局
             </button>
           ) : (
-            <span className="font-cn text-ink/50">等房主开下一局…</span>
+            <span className="font-cn text-ink/50">等房主再来一局…</span>
           )}
         </div>
       </div>

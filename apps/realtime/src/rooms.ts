@@ -7,6 +7,7 @@ import {
   findCategory,
   pickRound,
   type AIGuessInfo,
+  type GameMode,
   type NetPlayer,
   type RoomState,
   type ServerMessage,
@@ -21,7 +22,6 @@ interface ServerPlayer {
   id: string
   name: string
   emoji: string
-  score: number
   connected: boolean
   ws: WebSocket | null
   clientId: string // stable per-browser id, so a rejoin reconnects instead of duplicating
@@ -39,7 +39,7 @@ export interface Room {
   players: Map<string, ServerPlayer>
   hostId: string | null
   drawerId: string | null
-  phase: 'lobby' | 'draw' | 'reveal'
+  phase: 'lobby' | 'draw' | 'reveal' | 'ended'
   roundNo: number
   category: { id: string; label: string } | null
   target: string | null
@@ -49,7 +49,11 @@ export interface Room {
   aiGuess: AIGuessInfo | null
   winnerId: string | null
   startedAt: number
+  humanScore: number // team scores: humans (collectively) vs the AI
   aiScore: number
+  mode: GameMode // how the game ends: fixed rounds, or first-to-target-score
+  maxRounds: number
+  targetScore: number
 }
 
 const rooms = new Map<string, Room>()
@@ -74,7 +78,11 @@ function makeRoom(code: string): Room {
     aiGuess: null,
     winnerId: null,
     startedAt: 0,
+    humanScore: 0,
     aiScore: 0,
+    mode: 'rounds',
+    maxRounds: 6,
+    targetScore: 10,
   }
 }
 
@@ -96,7 +104,6 @@ function publicRoom(room: Room, viewerId: string): RoomState {
     id: p.id,
     name: p.name,
     emoji: p.emoji,
-    score: p.score,
     connected: p.connected,
     isDrawer: p.id === room.drawerId,
     guessed: room.guesses.has(p.id),
@@ -105,7 +112,6 @@ function publicRoom(room: Room, viewerId: string): RoomState {
     id: AI_ID,
     name: 'AI 对手',
     emoji: '🤖',
-    score: room.aiScore,
     connected: true,
     isDrawer: false,
     isAI: true,
@@ -126,7 +132,11 @@ function publicRoom(room: Room, viewerId: string): RoomState {
     winnerId: reveal ? room.winnerId : null,
     aiGuess: reveal ? room.aiGuess : null,
     guesses: reveal ? Object.fromEntries([...room.guesses].map(([k, v]) => [k, v.choice])) : {},
+    humanScore: room.humanScore,
     aiScore: room.aiScore,
+    mode: room.mode,
+    maxRounds: room.maxRounds,
+    targetScore: room.targetScore,
   }
 }
 
@@ -161,6 +171,55 @@ function startRound(room: Room, catId?: string) {
   pushState(room)
 }
 
+// Start (or restart) a game: reset scores, set the end condition, deal round 1.
+function startGame(room: Room, catId: string, mode: GameMode, rounds: number, target: number) {
+  room.mode = mode === 'score' ? 'score' : 'rounds'
+  room.maxRounds = Math.max(1, Math.min(50, Math.round(rounds) || 6))
+  room.targetScore = Math.max(1, Math.min(100, Math.round(target) || 10))
+  room.humanScore = 0
+  room.aiScore = 0
+  room.roundNo = 0
+  room.drawerId = null
+  startRound(room, catId)
+}
+
+function gameShouldEnd(room: Room): boolean {
+  if (room.mode === 'score') {
+    return room.humanScore >= room.targetScore || room.aiScore >= room.targetScore
+  }
+  return room.roundNo >= room.maxRounds
+}
+
+function nextRound(room: Room) {
+  if (gameShouldEnd(room)) {
+    endGame(room)
+    return
+  }
+  startRound(room, room.category?.id)
+}
+
+function endGame(room: Room) {
+  room.phase = 'ended'
+  pushState(room)
+}
+
+// Back to the lobby for a fresh game (scores cleared, host reconfigures).
+function resetToLobby(room: Room) {
+  room.humanScore = 0
+  room.aiScore = 0
+  room.roundNo = 0
+  room.drawerId = null
+  room.phase = 'lobby'
+  room.category = null
+  room.target = null
+  room.options = []
+  room.strokes = []
+  room.guesses = new Map()
+  room.aiGuess = null
+  room.winnerId = null
+  pushState(room)
+}
+
 function recordGuess(room: Room, playerId: string, choice: string) {
   if (room.phase !== 'draw') return
   if (playerId === room.drawerId) return // drawer can't guess
@@ -180,34 +239,32 @@ function maybeReveal(room: Room) {
 function doReveal(room: Room) {
   if (room.phase === 'reveal') return
   room.phase = 'reveal'
-  // earliest correct guess wins the round
-  let winnerId: string | null = null
-  let best = Infinity
-  for (const [pid, g] of room.guesses) {
-    if (g.correct && g.ts < best) {
-      best = g.ts
-      winnerId = pid
-    }
-  }
-  room.winnerId = winnerId
-  // scoring: each correct guesser +1; drawer +1 if a human got it but AI didn't
+
+  // Did the human camp get it (any non-drawer human correct)? Did the AI?
   let humanCorrect = false
-  let aiCorrect = false
+  let fastestHuman: { id: string; ts: number } | null = null
   for (const [pid, g] of room.guesses) {
-    if (!g.correct) continue
-    if (pid === AI_ID) {
-      aiCorrect = true
-      room.aiScore += 1
-    } else {
-      humanCorrect = true
-      const p = room.players.get(pid)
-      if (p) p.score += 1
-    }
+    if (pid === AI_ID || !g.correct) continue
+    humanCorrect = true
+    if (!fastestHuman || g.ts < fastestHuman.ts) fastestHuman = { id: pid, ts: g.ts }
   }
-  if (humanCorrect && !aiCorrect && room.drawerId) {
-    const drawer = room.players.get(room.drawerId)
-    if (drawer) drawer.score += 1 // reward a good "deviation" drawing
+  const aiCorrect = room.guesses.get(AI_ID)?.correct ?? false
+
+  // Team scoring — humans (collectively) vs the AI:
+  //   人类对, AI 错 → 人类 +2        画手成功"加密"
+  //   人类对, AI 对 → 人类 +1, AI +1  常规，双方都得分
+  //   人类错, AI 错 → 0, 0           双输，题太难
+  //   人类错, AI 对 → AI +3          AI 暴击（含 bonus）
+  if (humanCorrect && !aiCorrect) room.humanScore += 2
+  else if (humanCorrect && aiCorrect) {
+    room.humanScore += 1
+    room.aiScore += 1
+  } else if (!humanCorrect && aiCorrect) {
+    room.aiScore += 3
   }
+
+  // fastest correct human — cosmetic "最快猜对" highlight only, no score effect
+  room.winnerId = fastestHuman?.id ?? null
   pushState(room)
 }
 
@@ -270,7 +327,6 @@ export function handleMessage(conn: Connection, ws: WebSocket, raw: string) {
       id: conn.myId,
       name,
       emoji,
-      score: 0,
       connected: true,
       ws,
       clientId,
@@ -289,7 +345,10 @@ export function handleMessage(conn: Connection, ws: WebSocket, raw: string) {
 
   switch (msg.t) {
     case 'start':
-      if (myId === room.hostId) startRound(room, msg.category as string)
+      if (myId === room.hostId) {
+        const mode: GameMode = msg.mode === 'score' ? 'score' : 'rounds'
+        startGame(room, String(msg.category || ''), mode, Number(msg.rounds), Number(msg.target))
+      }
       break
     case 'stroke':
       if (myId === room.drawerId && room.phase === 'draw') {
@@ -315,7 +374,13 @@ export function handleMessage(conn: Connection, ws: WebSocket, raw: string) {
       }
       break
     case 'next':
-      if (myId === room.hostId) startRound(room, room.category?.id)
+      if (myId === room.hostId) nextRound(room)
+      break
+    case 'end':
+      if (myId === room.hostId) endGame(room)
+      break
+    case 'lobby':
+      if (myId === room.hostId) resetToLobby(room)
       break
   }
 }
