@@ -14,7 +14,6 @@
   --ink:#211c16;
   --ink-soft:#5b5247;
   --line:#d8cdb6;
-  /* human = warm, ai = cool — the core duality */
   --human:#f2541b;
   --human-soft:#ff7a45;
   --ai:#4b49c8;
@@ -29,12 +28,8 @@
 html,body{height:100%}
 body{
   font-family:"Noto Sans SC",system-ui,sans-serif;
-  color:var(--ink);
-  background:var(--paper);
-  overflow:hidden;
-  -webkit-font-smoothing:antialiased;
+  color:var(--ink);background:var(--paper);overflow:hidden;-webkit-font-smoothing:antialiased;
 }
-/* paper grain */
 body::before{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
   background-image:
@@ -49,11 +44,7 @@ body::after{
 }
 
 /* ---------- loading ---------- */
-#loader{
-  position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:22px;background:var(--paper);
-  transition:opacity .6s ease;
-}
+#loader{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--paper);transition:opacity .6s ease}
 #loader.gone{opacity:0;pointer-events:none}
 .spin{width:48px;height:48px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--human);animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -62,8 +53,7 @@ body::after{
 /* ---------- deck ---------- */
 #deck{position:relative;width:100vw;height:100vh;z-index:1}
 .slide{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;justify-content:center;
+  position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
   padding:clamp(28px,5vw,80px) clamp(24px,7vw,140px);
   opacity:0;transform:translateX(46px) scale(.985);
   transition:opacity .55s ease, transform .55s cubic-bezier(.2,.7,.2,1);
@@ -71,71 +61,56 @@ body::after{
 }
 .slide.active{opacity:1;transform:none;pointer-events:auto;z-index:2}
 .slide.prev{transform:translateX(-46px) scale(.985)}
+/* content-heavy slides align to top so the title never collides with tabs/rail */
+.slide.top{justify-content:flex-start;padding-top:clamp(78px,11vh,118px)}
 
 /* staggered reveal */
 .r{opacity:0}
 .slide.active .r{animation:rise .65s cubic-bezier(.2,.75,.2,1) both;animation-delay:calc(var(--d,0)*85ms)}
 @keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 
-/* ---------- typography & bits ---------- */
-.kicker{
-  display:inline-flex;align-items:center;gap:8px;
-  font-size:13px;font-weight:700;letter-spacing:.22em;color:var(--human);
-  text-transform:uppercase;margin-bottom:18px;
-}
-.kicker .num{
-  font-family:"Caveat",cursive;font-size:26px;letter-spacing:0;
-  background:var(--human);color:#fff;width:34px;height:34px;border-radius:50%;
-  display:grid;place-items:center;transform:rotate(-6deg);
-}
+/* ---------- typography ---------- */
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;letter-spacing:.22em;color:var(--human);text-transform:uppercase;margin-bottom:16px}
+.kicker .num{font-family:"Caveat",cursive;font-size:26px;letter-spacing:0;background:var(--human);color:#fff;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;transform:rotate(-6deg)}
 h1.title{font-size:clamp(38px,7vw,86px);font-weight:900;line-height:1.02;letter-spacing:-.02em}
-h2{font-size:clamp(26px,3.6vw,46px);font-weight:900;line-height:1.12;letter-spacing:-.01em}
+h2{font-size:clamp(24px,3.3vw,42px);font-weight:900;line-height:1.14;letter-spacing:-.01em}
 .lead{font-size:clamp(16px,1.7vw,21px);color:var(--ink-soft);line-height:1.7;max-width:60ch;font-weight:300}
 .hl{color:var(--human);font-weight:700}
 .hl-ai{color:var(--ai);font-weight:700}
 .scribble{position:relative;display:inline-block}
 .scribble svg{position:absolute;left:-4%;bottom:-14px;width:108%;height:18px;overflow:visible}
-.scribble path{stroke:var(--gold);stroke-width:6;fill:none;stroke-linecap:round;
-  stroke-dasharray:600;stroke-dashoffset:600}
+.scribble path{stroke:var(--gold);stroke-width:6;fill:none;stroke-linecap:round;stroke-dasharray:600;stroke-dashoffset:600}
 .slide.active .scribble path{animation:draw 1s ease .5s forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
 
 /* ---------- cover ---------- */
 #cover{align-items:center;justify-content:center;text-align:center}
 .cover-doodle{width:min(420px,70vw);height:auto;margin-bottom:8px}
-.cover-doodle path,.cover-doodle circle,.cover-doodle line,.cover-doodle rect{
-  fill:none;stroke:var(--ink);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;
-}
+.cover-doodle path,.cover-doodle circle,.cover-doodle line,.cover-doodle rect{fill:none;stroke:var(--ink);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
 .cover-doodle .draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len)}
 #cover.active .cover-doodle .draw{animation:draw2 1.4s ease forwards;animation-delay:calc(var(--dd,0)*.18s)}
 @keyframes draw2{to{stroke-dashoffset:0}}
 .cover-doodle .fillp{opacity:0}
 #cover.active .cover-doodle .fillp{animation:pop .4s ease forwards;animation-delay:calc(1s + var(--dd,0)*.12s)}
 @keyframes pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
-.cover-en{font-family:"Caveat",cursive;font-size:clamp(22px,3vw,34px);color:var(--ai);font-weight:700;letter-spacing:.02em}
+.cover-en{font-family:"Caveat",cursive;font-size:clamp(22px,3vw,34px);color:var(--ai);font-weight:700}
 .cover-sub{margin-top:18px;font-size:clamp(15px,1.8vw,20px);color:var(--ink-soft);font-weight:300}
 .cover-meta{margin-top:34px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
 .pill{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:8px 18px;font-size:14px;font-weight:500;box-shadow:var(--shadow-sm)}
-.pill b{color:var(--human)}
 
 /* ---------- layout helpers ---------- */
 .cols{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,4vw,64px);align-items:center}
 @media(max-width:880px){.cols{grid-template-columns:1fr;gap:26px}}
 .stack>*+*{margin-top:18px}
-
-/* cards */
 .card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:22px 24px;box-shadow:var(--shadow-sm)}
 .bullets{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:4px}
 .bullets li{display:flex;gap:13px;font-size:clamp(15px,1.45vw,18px);line-height:1.55;color:var(--ink)}
-.bullets .ic{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:16px;
-  background:linear-gradient(140deg,var(--human-soft),var(--human));color:#fff;box-shadow:var(--shadow-sm);transform:rotate(-4deg)}
+.bullets .ic{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:16px;background:linear-gradient(140deg,var(--human-soft),var(--human));color:#fff;box-shadow:var(--shadow-sm);transform:rotate(-4deg)}
 .bullets.ai .ic{background:linear-gradient(140deg,var(--ai-soft),var(--ai))}
 
 /* ---------- scoring matrix ---------- */
 .matrix{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:680px}
-.qcard{position:relative;border-radius:16px;padding:18px 20px;cursor:default;overflow:hidden;
-  border:1.6px solid var(--line);background:var(--card);box-shadow:var(--shadow-sm);
-  transition:transform .25s ease, box-shadow .25s ease}
+.qcard{position:relative;border-radius:16px;padding:18px 20px;overflow:hidden;border:1.6px solid var(--line);background:var(--card);box-shadow:var(--shadow-sm);transition:transform .25s ease, box-shadow .25s ease}
 .qcard:hover{transform:translateY(-5px) rotate(-.5deg);box-shadow:var(--shadow)}
 .qcard .tag{font-size:12.5px;font-weight:700;letter-spacing:.04em;color:var(--ink-soft)}
 .qcard .pts{font-size:30px;font-weight:900;margin:6px 0 4px;font-family:"Caveat",cursive}
@@ -162,37 +137,55 @@ h2{font-size:clamp(26px,3.6vw,46px);font-weight:900;line-height:1.12;letter-spac
 .reason{margin-top:14px;font-size:15px;color:var(--ink-soft);min-height:22px}
 .reason b{color:var(--ink)}
 .verdict{margin-top:12px;font-weight:700;font-size:16px;min-height:24px}
-.btn{margin-top:18px;display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:none;
-  background:var(--ink);color:#fff;font-family:inherit;font-size:15px;font-weight:600;
-  padding:12px 22px;border-radius:999px;box-shadow:var(--shadow-sm);transition:transform .15s ease, background .2s}
+.btn{margin-top:18px;display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:none;background:var(--ink);color:#fff;font-family:inherit;font-size:15px;font-weight:600;padding:12px 22px;border-radius:999px;box-shadow:var(--shadow-sm);transition:transform .15s ease, background .2s}
 .btn:hover{transform:translateY(-2px)}
-.btn:active{transform:translateY(0)}
-.schema{margin-top:16px;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft);
-  background:var(--paper-2);border-radius:10px;padding:10px 14px;border:1px dashed var(--line)}
+.schema{margin-top:16px;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft);background:var(--paper-2);border-radius:10px;padding:10px 14px;border:1px dashed var(--line)}
 .schema .k{color:var(--ai)}
 
-/* ---------- tabs (product / tech) ---------- */
-.tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
-.tab{cursor:pointer;border:1.5px solid var(--line);background:var(--card);color:var(--ink-soft);
-  font-family:inherit;font-size:14px;font-weight:600;padding:9px 18px;border-radius:999px;transition:all .2s}
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 22px}
+.tab{cursor:pointer;border:1.5px solid var(--line);background:var(--card);color:var(--ink-soft);font-family:inherit;font-size:14px;font-weight:600;padding:9px 18px;border-radius:999px;transition:all .2s}
 .tab:hover{border-color:var(--human)}
 .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.panel-wrap{position:relative}
-.panel{display:none;animation:fade .4s ease}
+.panel{display:none;grid-template-columns:1.15fr .85fr;gap:clamp(22px,3.5vw,52px);align-items:center;animation:fade .4s ease}
 .panel.on{display:grid}
 @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.panel{grid-template-columns:1.25fr .9fr;gap:clamp(20px,3vw,44px);align-items:center}
 @media(max-width:900px){.panel{grid-template-columns:1fr}}
-.diagram{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:18px;
-  box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;min-height:200px;overflow:auto}
-.mermaid{width:100%}
-.panel .notes h3{font-size:20px;font-weight:900;margin-bottom:12px}
-.panel .notes p{font-size:15px;color:var(--ink-soft);line-height:1.65}
-.panel .notes .mini{list-style:none;display:flex;flex-direction:column;gap:9px;margin-top:12px}
-.panel .notes .mini li{font-size:14px;color:var(--ink);line-height:1.5;padding-left:18px;position:relative}
-.panel .notes .mini li::before{content:"";position:absolute;left:0;top:9px;width:8px;height:8px;border-radius:2px;background:var(--human);transform:rotate(45deg)}
-.codechip{font-family:"JetBrains Mono",monospace;font-size:12.5px;background:var(--paper-2);
-  padding:2px 7px;border-radius:6px;border:1px solid var(--line);color:var(--ai)}
+.notes h3{font-size:20px;font-weight:900;margin-bottom:12px}
+.notes .mini{list-style:none;display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.notes .mini li{font-size:14px;color:var(--ink);line-height:1.5;padding-left:18px;position:relative}
+.notes .mini li::before{content:"";position:absolute;left:0;top:8px;width:8px;height:8px;border-radius:2px;background:var(--human);transform:rotate(45deg)}
+.codechip{font-family:"JetBrains Mono",monospace;font-size:12.5px;background:var(--paper-2);padding:2px 7px;border-radius:6px;border:1px solid var(--line);color:var(--ai)}
+
+/* ====== bespoke diagrams (replace Mermaid) ====== */
+.diagram{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:clamp(18px,2.4vw,30px);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center}
+/* node sticker */
+.node{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:11px 16px;box-shadow:3px 3px 0 var(--ink);font-weight:700;font-size:14.5px;text-align:center;line-height:1.25}
+.node .sub{display:block;font-weight:400;font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+.node.human{border-color:var(--human);box-shadow:3px 3px 0 var(--human);background:#fff6f1}
+.node.ai{border-color:var(--ai);box-shadow:3px 3px 0 var(--ai);background:#f1f1ff}
+.node.gold{border-color:var(--gold);box-shadow:3px 3px 0 var(--gold);background:#fff8ea}
+/* vertical flow (P1 / T1 / state machines) */
+.flow{display:flex;flex-direction:column;align-items:center;width:100%}
+.flow .row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.av{width:2.6px;height:24px;background:var(--ink);position:relative;margin:7px 0;border-radius:2px}
+.av::after{content:"";position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top:7px solid var(--ink);border-bottom:0}
+.av.split{width:60%;height:2.6px;margin:7px 0 0}
+.av.split::after{display:none}
+.flow .caption{margin-top:8px;font-size:12px;color:var(--ink-soft);letter-spacing:.04em}
+/* stepper (P2 / T2) */
+.stepper{display:flex;flex-direction:column;width:100%;position:relative}
+.step{display:flex;gap:15px;align-items:flex-start;padding:7px 0;position:relative}
+.step .dot{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:19px;background:linear-gradient(140deg,var(--human-soft),var(--human));color:#fff;box-shadow:2px 3px 0 rgba(0,0,0,.14);transform:rotate(-4deg);z-index:1}
+.step.ai .dot{background:linear-gradient(140deg,var(--ai-soft),var(--ai))}
+.step.gold .dot{background:linear-gradient(140deg,#f2c14e,var(--gold))}
+.step .sb h5{font-size:15.5px;font-weight:800;line-height:1.3}
+.step .sb p{font-size:13px;color:var(--ink-soft);line-height:1.45;margin-top:1px}
+.stepper .step:not(:last-child)::before{content:"";position:absolute;left:20px;top:48px;bottom:-4px;width:2.6px;background:repeating-linear-gradient(var(--line) 0 6px, transparent 6px 11px)}
+/* loop note under state machines */
+.loop{margin-top:14px;font-size:12.5px;color:var(--ink-soft);text-align:center;line-height:2}
+.loop .tagx{background:var(--paper-2);border:1px dashed var(--line);border-radius:999px;padding:3px 11px;margin:0 3px;white-space:nowrap;font-weight:500}
+.loop .tagx b{color:var(--human)}
 
 /* ---------- summary ---------- */
 .sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px}
@@ -202,39 +195,26 @@ h2{font-size:clamp(26px,3.6vw,46px);font-weight:900;line-height:1.12;letter-spac
 .sum-card h4{font-size:17px;font-weight:900;margin:10px 0 6px}
 .sum-card p{font-size:14px;color:var(--ink-soft);line-height:1.6}
 .big-quote{font-size:clamp(22px,3vw,38px);font-weight:900;line-height:1.3;max-width:22ch}
-.big-quote .hl{position:relative}
 
-/* ---------- chrome: nav ---------- */
-#rail{position:fixed;top:22px;left:50%;transform:translateX(-50%);z-index:30;
-  display:flex;gap:6px;background:rgba(255,253,247,.8);backdrop-filter:blur(8px);
-  border:1.5px solid var(--line);border-radius:999px;padding:6px;box-shadow:var(--shadow-sm);
-  transition:opacity .4s, transform .4s}
+/* ---------- chrome ---------- */
+#rail{position:fixed;top:22px;left:50%;transform:translateX(-50%);z-index:30;display:flex;gap:6px;background:rgba(255,253,247,.82);backdrop-filter:blur(8px);border:1.5px solid var(--line);border-radius:999px;padding:6px;box-shadow:var(--shadow-sm);transition:opacity .4s, transform .4s}
 #rail.hide{opacity:0;transform:translateX(-50%) translateY(-16px);pointer-events:none}
-#rail button{border:none;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;
-  color:var(--ink-soft);padding:7px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:all .2s}
+#rail button{border:none;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft);padding:7px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:all .2s}
 #rail button:hover{color:var(--ink)}
 #rail button.on{background:var(--human);color:#fff}
 @media(max-width:720px){#rail button{padding:7px 9px;font-size:11px}}
-
 #arrows{position:fixed;bottom:26px;right:28px;z-index:30;display:flex;gap:10px}
-.nav{width:50px;height:50px;border-radius:50%;border:1.6px solid var(--line);background:var(--card);
-  cursor:pointer;display:grid;place-items:center;box-shadow:var(--shadow-sm);transition:transform .15s, background .2s, color .2s}
+.nav{width:50px;height:50px;border-radius:50%;border:1.6px solid var(--line);background:var(--card);cursor:pointer;display:grid;place-items:center;box-shadow:var(--shadow-sm);transition:transform .15s, background .2s, color .2s;color:var(--ink)}
 .nav:hover{transform:translateY(-3px);background:var(--ink);color:#fff;border-color:var(--ink)}
 .nav svg{width:20px;height:20px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .nav:disabled{opacity:.35;cursor:default;transform:none;background:var(--card);color:var(--ink)}
-
 #dots{position:fixed;bottom:38px;left:28px;z-index:30;display:flex;gap:9px;align-items:center}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--line);cursor:pointer;transition:all .25s}
 .dot.on{background:var(--human);width:26px;border-radius:999px}
-
 #bar{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--human),var(--gold));z-index:40;width:0;transition:width .4s ease;box-shadow:0 0 12px rgba(242,84,27,.5)}
-
-#hint{position:fixed;bottom:38px;left:50%;transform:translateX(-50%);z-index:30;font-size:12.5px;color:var(--ink-soft);
-  background:rgba(255,253,247,.7);padding:6px 14px;border-radius:999px;border:1px solid var(--line);
-  display:flex;gap:8px;align-items:center;transition:opacity .4s}
+#hint{position:fixed;bottom:38px;left:50%;transform:translateX(-50%);z-index:30;font-size:12.5px;color:var(--ink-soft);background:rgba(255,253,247,.7);padding:6px 14px;border-radius:999px;border:1px solid var(--line);display:flex;gap:8px;align-items:center;transition:opacity .4s}
 #hint.hide{opacity:0;pointer-events:none}
-kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card);border:1px solid var(--line);
-  border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
 .pageno{position:fixed;bottom:38px;right:96px;z-index:30;font-family:"Caveat",cursive;font-size:22px;color:var(--ink-soft)}
 @media(max-width:720px){.pageno{display:none}}
 </style>
@@ -242,9 +222,7 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
 <body>
 
 <div id="loader"><div class="spin"></div><p>装订路演手册…</p></div>
-
 <div id="bar"></div>
-
 <nav id="rail"></nav>
 
 <div id="deck">
@@ -252,15 +230,12 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
   <!-- ===== COVER ===== -->
   <section class="slide" id="cover" data-chapter="-1">
     <svg class="cover-doodle" viewBox="0 0 460 200">
-      <!-- human smiley -->
       <circle class="draw" style="--len:300;--dd:0" cx="100" cy="92" r="46"/>
       <circle class="fillp" style="--dd:0" cx="84" cy="82" r="5" fill="var(--ink)" stroke="none"/>
       <circle class="fillp" style="--dd:1" cx="116" cy="82" r="5" fill="var(--ink)" stroke="none"/>
       <path class="draw" style="--len:120;--dd:2" d="M80 104 Q100 122 120 104"/>
-      <!-- VS -->
       <path class="draw" style="--len:120;--dd:3" d="M205 70 L222 120 L239 70" stroke="var(--human)" stroke-width="6"/>
       <path class="draw" style="--len:120;--dd:4" d="M250 70 Q280 70 268 95 Q256 118 285 118" stroke="var(--human)" stroke-width="6"/>
-      <!-- robot -->
       <rect class="draw" style="--len:360;--dd:3" x="320" y="60" width="92" height="80" rx="14"/>
       <line class="draw" style="--len:30;--dd:4" x1="366" y1="60" x2="366" y2="42"/>
       <circle class="fillp" style="--dd:4" cx="366" cy="38" r="6" fill="var(--ai)" stroke="none"/>
@@ -310,8 +285,7 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
         <li><span class="ic">④</span><div>画手<b>每轮轮换</b>，人人都有机会给画面「加密」。</div></li>
       </ul>
       <div class="card r" style="--d:4">
-        <p style="font-size:15px;color:var(--ink-soft);line-height:1.7">
-        🎯 <b>胜负的关键，是一片「甜蜜区」：</b><br/><br/>
+        <p style="font-size:15px;color:var(--ink-soft);line-height:1.7">🎯 <b>胜负的关键，是一片「甜蜜区」：</b><br/><br/>
         画得<span class="hl-ai">太写实</span> → 连 AI 都懂，你没占到便宜；<br/>
         画得<span style="color:var(--ink-soft);font-weight:700">太抽象</span> → 同伴也懵，大家一起输；<br/><br/>
         只有那种「<span class="hl">人会心一笑、AI 一脸茫然</span>」的画，才是高手。</p>
@@ -365,101 +339,92 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
     </div>
   </section>
 
-  <!-- ===== 3 产品设计 ===== -->
-  <section class="slide" data-chapter="2">
+  <!-- ===== 3 产品框架 ===== -->
+  <section class="slide top" data-chapter="2">
     <span class="kicker r" style="--d:0"><span class="num">3</span> 产品框架 · 三张图说清</span>
-    <h2 class="r" style="--d:1" style="margin-bottom:6px">游戏由什么组成、玩家怎么互动、一个房间会经历哪些阶段</h2>
+    <h2 class="r" style="--d:1">游戏由什么组成、玩家怎么互动、房间会经历哪些阶段</h2>
     <div class="tabs r" style="--d:2" data-tabs="p">
       <button class="tab on" data-t="0">① 产品组成</button>
       <button class="tab" data-t="1">② 玩家互动流程</button>
       <button class="tab" data-t="2">③ 房间阶段</button>
     </div>
-    <div class="panel-wrap r" style="--d:3" data-panels="p">
-      <!-- p0 -->
+    <div class="panels r" style="--d:3" data-panels="p">
+
+      <!-- p0 组成 -->
       <div class="panel on">
-        <div class="diagram"><pre class="mermaid">flowchart TB
-  Player["🌐 玩家"]
-  subgraph Modes["两种玩法"]
-    Solo["🧑‍🎨 单人挑战<br/>独自骗过 AI"]
-    Multi["👥 多人房间<br/>一起画、一起猜"]
-  end
-  Room["🏠 房间<br/>实时联机 · 计分"]
-  AI["🤖 AI 对手<br/>看图猜词"]
-  Player --> Modes
-  Solo --> AI
-  Multi --> Room
-  Room --> AI</pre></div>
+        <div class="diagram"><div class="flow">
+          <div class="node">🌐 玩家</div>
+          <div class="av"></div>
+          <div class="row">
+            <div class="node human">🧑‍🎨 单人挑战<span class="sub">独自骗过 AI</span></div>
+            <div class="node human">👥 多人房间<span class="sub">一起画、一起猜</span></div>
+          </div>
+          <div class="av"></div>
+          <div class="node gold">🏠 房间<span class="sub">实时联机 · 计分</span></div>
+          <div class="av"></div>
+          <div class="node ai">🤖 AI 对手<span class="sub">看图猜词</span></div>
+        </div></div>
         <div class="notes">
           <h3>系统由什么组成</h3>
           <ul class="mini">
             <li>两种玩法：<b>单人挑战</b>（自己对抗 AI）与<b>多人房间</b>（一桌人一起玩）。</li>
             <li>多人玩法发生在<b>房间</b>里：实时同步每个人的操作，并完成计分。</li>
-            <li><b>AI 对手</b>贯穿两种玩法——既是竞争对手，也是「画到底骗没骗过它」的裁判。</li>
+            <li><b>AI 对手</b>贯穿两种玩法——既是对手，也是「画到底骗没骗过它」的裁判。</li>
           </ul>
         </div>
       </div>
-      <!-- p1 -->
+
+      <!-- p1 互动 -->
       <div class="panel">
-        <div class="diagram"><pre class="mermaid">sequenceDiagram
-  actor Drawer as 🎨 画画的人
-  actor Guesser as 🙋 作答的人
-  participant RT as 🏠 房间
-  participant AI as 🤖 AI
-  Drawer->>RT: 加入房间
-  RT-->>Drawer: 进入房间
-  Guesser->>RT: 加入房间
-  RT-->>Guesser: 进入房间
-  Note over RT: 房主开局 → 出题
-  RT-->>Drawer: 轮到你画（悄悄告诉你词）
-  loop 作画中
-    Drawer->>RT: 画一笔
-    RT-->>Guesser: 实时同步笔迹
-  end
-  Guesser->>RT: 抢答（从选项里选）
-  Drawer->>RT: 画好了，交给 AI 猜
-  RT->>AI: 把这幅画交给 AI
-  AI-->>RT: AI 的猜测
-  Note over RT: 都答完 → 公布结果
-  RT-->>Guesser: 公布答案与得分</pre></div>
+        <div class="diagram"><div class="stepper">
+          <div class="step"><div class="dot">🎨</div><div class="sb"><h5>画手拿到词，开始画</h5><p>系统悄悄告诉画手目标词</p></div></div>
+          <div class="step"><div class="dot">✏️</div><div class="sb"><h5>每一笔实时同步</h5><p>其他人在同一块画布上即时看到</p></div></div>
+          <div class="step ai"><div class="dot">🙋</div><div class="sb"><h5>大家从选项里抢答</h5><p>同伴作答 ＋ AI 同时看图识别</p></div></div>
+          <div class="step gold"><div class="dot">🔍</div><div class="sb"><h5>揭晓 & 计分</h5><p>所有人答完 → 公布答案与本局得分</p></div></div>
+          <div class="step"><div class="dot">🔄</div><div class="sb"><h5>轮换，进入下一局</h5><p>换人当画手，人人都有机会「加密」</p></div></div>
+        </div></div>
         <div class="notes">
           <h3>玩家是怎么互动的</h3>
           <ul class="mini">
             <li><b>谁画谁猜每轮轮换</b>，人人都当过画手。</li>
-            <li><b>画面实时同步</b>：画手每一笔，其他人立刻在同一块画布上看到。</li>
-            <li><b>AI 与人同场竞猜</b>，结果在「揭晓」时一起公布。</li>
+            <li><b>画面实时同步</b>，像围在一起看人现场作画。</li>
+            <li><b>AI 与人同场竞猜</b>，揭晓时一起公布。</li>
             <li><b>房主把控节奏</b>：开局、下一局、提前结束。</li>
           </ul>
         </div>
       </div>
-      <!-- p2 -->
+
+      <!-- p2 阶段 -->
       <div class="panel">
-        <div class="diagram"><pre class="mermaid">stateDiagram-v2
-  state "🕓 等待中" as L
-  state "🎮 进行中" as D
-  state "🔍 揭晓" as R
-  state "🏁 已结束" as E
-  [*] --> L: 创建房间
-  L --> D: 房主开局
-  D --> R: 一局画完、大家答完
-  R --> D: 下一局（换人画）
-  R --> E: 玩到结束条件
-  E --> L: 再玩一局
-  D --> [*]: 人都走光</pre></div>
+        <div class="diagram"><div class="flow">
+          <div class="node">🕓 等待中<span class="sub">等人进房 · 房主设置玩法</span></div>
+          <div class="av"></div>
+          <div class="node human">🎮 进行中<span class="sub">画手作画 · 大家抢答</span></div>
+          <div class="av"></div>
+          <div class="node gold">🔍 揭晓<span class="sub">公布答案 · 本局得分</span></div>
+          <div class="av"></div>
+          <div class="node ai">🏁 已结束<span class="sub">展示最终比分与胜负</span></div>
+          <div class="loop">
+            <span class="tagx">🔄 揭晓 → 进行中：<b>下一局换人画</b></span>
+            <span class="tagx">↩️ 已结束 → 等待中：<b>再玩一局</b></span>
+          </div>
+        </div></div>
         <div class="notes">
           <h3>一个房间会经历哪些阶段</h3>
           <ul class="mini">
-            <li><b>等待中</b>：等人进房，房主设置玩几局 / 抢多少分。</li>
-            <li><b>进行中</b>：画手作画，其他人随时抢答。</li>
-            <li><b>揭晓</b>：公布答案与本局得分。</li>
-            <li><b>已结束</b>：展示最终比分，房主可「再玩一局」。</li>
+            <li><b>何时揭晓</b>：AI 给出猜测、且作答者都答完 → 自动揭晓。</li>
+            <li><b>何时结束</b>：玩满约定局数，或一方先到目标分。</li>
+            <li><b>随时可玩</b>：房主能提前结束，或结束后「再玩一局」。</li>
+            <li><b>自动回收</b>：所有人离开，房间自动关闭。</li>
           </ul>
         </div>
       </div>
+
     </div>
   </section>
 
   <!-- ===== 4 技术架构 ===== -->
-  <section class="slide" data-chapter="3">
+  <section class="slide top" data-chapter="3">
     <span class="kicker r" style="--d:0"><span class="num">4</span> 技术架构 · 三张图说清</span>
     <h2 class="r" style="--d:1">两个服务各司其职，靠一个 <span class="hl-ai">实时中枢</span> 把所有人「同屏」</h2>
     <div class="tabs r" style="--d:2" data-tabs="t">
@@ -467,90 +432,80 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
       <button class="tab" data-t="1">② WebSocket 交互</button>
       <button class="tab" data-t="2">③ 房间状态</button>
     </div>
-    <div class="panel-wrap r" style="--d:3" data-panels="t">
-      <!-- t0 -->
+    <div class="panels r" style="--d:3" data-panels="t">
+
+      <!-- t0 架构 -->
       <div class="panel on">
-        <div class="diagram"><pre class="mermaid">flowchart TB
-  subgraph Client["🌐 浏览器 · 玩家"]
-    UI["游戏界面 (React)"]
-  end
-  CADDY["Caddy 反向代理<br/>HTTPS / WSS"]
-  subgraph Web["Web 服务 · Next.js"]
-    PAGE["页面 + HTTP 接口<br/>/api/guess · /api/rooms"]
-  end
-  subgraph RT["实时服务 · WebSocket"]
-    WSS["房间与对局逻辑<br/>内存状态"]
-  end
-  AI["🤖 Claude 视觉模型"]
-  UI -->|"HTTP / WebSocket"| CADDY
-  CADDY -->|"/ws"| WSS
-  CADDY -->|"其余页面 + /api"| PAGE
-  PAGE -->|"单人识图"| AI
-  WSS -->|"多人识图"| AI</pre></div>
+        <div class="diagram"><div class="flow">
+          <div class="node">🌐 浏览器 · 玩家<span class="sub">游戏界面 (React)</span></div>
+          <div class="av"></div>
+          <div class="node gold">🔀 Caddy 反向代理<span class="sub">自动 HTTPS / WSS · 统一入口</span></div>
+          <div class="av"></div>
+          <div class="row">
+            <div class="node">🖥️ Web 服务 · Next.js<span class="sub">页面 · 单人识图 · 房间列表</span></div>
+            <div class="node ai">⚡ 实时服务 · WebSocket<span class="sub">房间 · 笔迹同步 · 计分（内存）</span></div>
+          </div>
+          <div class="av"></div>
+          <div class="node ai">🤖 Claude 视觉模型<span class="sub">后端调用 · 密钥不进浏览器</span></div>
+        </div></div>
         <div class="notes">
           <h3>两个后端服务，各司其职</h3>
           <ul class="mini">
-            <li><b>Web 服务（Next.js）</b>—— 无状态。页面、单人识图接口、房间列表代理。</li>
-            <li><b>实时服务（WebSocket）</b>—— 有状态。多人房间：连接、笔迹同步、计分、对局推进。</li>
-            <li><b>为什么拆两个</b>：Next.js 不擅长长连接，实时对局需要常驻 WebSocket；拆开后可独立重启 / 扩缩容。</li>
-            <li><b>AI 在服务端调用</b>：密钥不进浏览器，单人多人共用一套识图逻辑。</li>
+            <li><b>Web 服务</b>（无状态）：页面、单人识图、房间列表代理。</li>
+            <li><b>实时服务</b>（有状态）：多人房间的连接、笔迹同步、计分。</li>
+            <li><b>为什么拆两个</b>：Next.js 不擅长长连接，可独立重启 / 扩缩容。</li>
+            <li><b>AI 在服务端调用</b>，单人多人共用一套识图逻辑。</li>
           </ul>
         </div>
       </div>
-      <!-- t1 -->
+
+      <!-- t1 WebSocket -->
       <div class="panel">
-        <div class="diagram"><pre class="mermaid">sequenceDiagram
-  actor Drawer as 🎨 画画的人
-  actor Guesser as 🙋 作答的人
-  participant RT as 🔌 实时服务器
-  participant AI as 🤖 AI
-  Note over Drawer,Guesser: 浏览器通过 WebSocket 连到 /ws
-  Drawer->>RT: join（房间码+昵称）
-  RT-->>Drawer: state（房间快照）
-  Note over RT: 任何变化 → 向房内所有人广播 state
-  loop 画手作画
-    Drawer->>RT: stroke（一段笔迹）
-    RT-->>Guesser: stroke（实时转发）
-  end
-  Guesser->>RT: guess（选项）
-  Drawer->>RT: submitDrawing（提交图片）
-  RT->>AI: 图片+选项交给 AI
-  AI-->>RT: 返回猜测
-  RT-->>Guesser: state（reveal · 公布）</pre></div>
+        <div class="diagram"><div class="stepper">
+          <div class="step ai"><div class="dot">🔌</div><div class="sb"><h5>建立一条长连接 /ws</h5><p>每个浏览器与服务器双向随时收发</p></div></div>
+          <div class="step"><div class="dot">📨</div><div class="sb"><h5>客户端只发「意图」</h5><p>join / stroke / guess / submit…</p></div></div>
+          <div class="step ai"><div class="dot">🧠</div><div class="sb"><h5>服务器＝唯一真相源</h5><p>据此更新房间状态，谁对谁错它说了算</p></div></div>
+          <div class="step gold"><div class="dot">📡</div><div class="sb"><h5>广播 state 给全房间</h5><p>界面永远跟随推送的 state 渲染</p></div></div>
+          <div class="step"><div class="dot">🤖</div><div class="sb"><h5>提交后服务器调 AI</h5><p>结果并入房间状态，再一起广播</p></div></div>
+        </div></div>
         <div class="notes">
           <h3>WebSocket 怎么运作</h3>
           <ul class="mini">
-            <li><b>持久连接</b>：每个浏览器一条长连接 <span class="codechip">/ws</span>，双向随时收发。</li>
-            <li><b>服务器是唯一真相源</b>：客户端只发「意图」，服务器更新状态再<b>广播</b> <span class="codechip">state</span>。</li>
-            <li><b>实时同步靠转发</b>：每画一笔发一条 <span class="codechip">stroke</span>，原样转发 → 大家「同屏」。</li>
-            <li><b>AI 不是 WS 客户端</b>：由服务器在「提交」后调用，结果并入状态再广播。</li>
+            <li><b>持久连接</b> <span class="codechip">/ws</span>，双向随时收发，不必反复发 HTTP。</li>
+            <li><b>唯一真相源</b>：客户端发意图，服务器更新并广播 <span class="codechip">state</span>。</li>
+            <li><b>实时同步靠转发</b>：每画一笔发一条 <span class="codechip">stroke</span> → 大家同屏。</li>
+            <li><b>AI 不是 WS 客户端</b>，由服务器在「提交」后调用。</li>
           </ul>
         </div>
       </div>
-      <!-- t2 -->
+
+      <!-- t2 状态 -->
       <div class="panel">
-        <div class="diagram"><pre class="mermaid">stateDiagram-v2
-  state "🕓 lobby" as L
-  state "🎨 draw" as D
-  state "🔍 reveal" as R
-  state "🏁 ended" as E
-  [*] --> L: 创建房间
-  L --> D: 房主开局
-  D --> R: AI 已答 + 作答者都锁定
-  R --> D: 下一局 · 轮换画手
-  R --> E: 达到结束条件
-  E --> L: 再玩一局
-  D --> [*]: 所有人离开 · 释放</pre></div>
+        <div class="diagram"><div class="flow">
+          <div class="node">🕓 lobby<span class="sub">等人 · 房主配置玩法</span></div>
+          <div class="av"></div>
+          <div class="node human">🎨 draw<span class="sub">画手作画 · 其他人抢答</span></div>
+          <div class="av"></div>
+          <div class="node gold">🔍 reveal<span class="sub">AI 已答 + 都锁定 → 结算</span></div>
+          <div class="av"></div>
+          <div class="node ai">🏁 ended<span class="sub">展示最终比分与胜负</span></div>
+          <div class="loop">
+            <span class="tagx">🔄 reveal → draw：<b>下一局换人</b></span>
+            <span class="tagx">↩️ ended → lobby：<b>再玩一局</b></span>
+            <span class="tagx">🧹 全员离开 → <b>房间释放</b></span>
+          </div>
+        </div></div>
         <div class="notes">
           <h3>房间状态机</h3>
           <ul class="mini">
             <li><span class="codechip">lobby</span> 等人 + 房主配置玩法。</li>
             <li><span class="codechip">draw</span> 画手作画，其他人抢答。</li>
             <li><span class="codechip">reveal</span> AI 已答 + 作答者都锁定 → 自动结算。</li>
-            <li><span class="codechip">ended</span> 展示最终比分；状态在内存，进程重启即清空。</li>
+            <li><span class="codechip">ended</span> 展示最终比分；状态在内存，重启即清空。</li>
           </ul>
         </div>
       </div>
+
     </div>
   </section>
 
@@ -559,11 +514,11 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
     <span class="kicker r" style="--d:0"><span class="num">5</span> 总结 & 升华</span>
     <h2 class="r" style="--d:1">一个小游戏，一次「人 vs 机器认知」的轻量实验</h2>
     <div class="sum-grid">
-      <div class="sum-card r" style="--d:2"><div class="e">🧠</div><h4>人类的盲区，恰是 AI 的盲区</h4><p>AI 很强，但「共识、联想、文化默契」依然是它够不到的地方——我们把它做成了乐趣。</p></div>
+      <div class="sum-card r" style="--d:2"><div class="e">🧠</div><h4>人类的默契，AI 的盲区</h4><p>AI 很强，但「共识、联想、文化默契」依然是它够不到的地方——我们把它做成了乐趣。</p></div>
       <div class="sum-card r" style="--d:3"><div class="e">🪶</div><h4>小而美的技术</h4><p>薄薄一层 AI 调用，<b>承重</b>整个玩法；实时同步 + 唯一真相源，让多人丝滑同屏。</p></div>
       <div class="sum-card r" style="--d:4"><div class="e">📈</div><h4>可平滑长大</h4><p>产品上用房间列表自然<b>分流</b>；技术上「多实例 + 共享状态」可扩展到规模化。</p></div>
     </div>
-    <div class="r" style="--d:5;margin-top:34px;display:flex;align-items:center;gap:22px;flex-wrap:wrap">
+    <div class="r" style="--d:5;margin-top:34px">
       <p class="big-quote">当 AI 越来越像人，<br/>最好玩的，是去发现它<br/><span class="hl scribble">「还不像人」的地方<svg viewBox="0 0 360 18"><path d="M4 12 Q120 3 200 11 T356 8"/></svg></span>。</p>
     </div>
   </section>
@@ -579,30 +534,12 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
 </div>
 <div id="hint"><span>用 <kbd>←</kbd> <kbd>→</kbd> 或点右下角翻页 · 点顶部跳章</span></div>
 
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <script>
 const slides=[...document.querySelectorAll('.slide')];
 const chapters=['背景','设计思路','产品设计','技术架构','总结'];
 let i=0;
 
-/* ---- mermaid ---- */
-mermaid.initialize({
-  startOnLoad:false,
-  securityLevel:'loose',
-  theme:'base',
-  fontFamily:'"Noto Sans SC",sans-serif',
-  themeVariables:{
-    primaryColor:'#fffdf7', primaryBorderColor:'#d8cdb6', primaryTextColor:'#211c16',
-    lineColor:'#b3a89a',
-    secondaryColor:'#fff5ee', tertiaryColor:'#f0f0ff',
-    actorBkg:'#fffdf7', actorBorder:'#f2541b', actorTextColor:'#211c16',
-    signalColor:'#5b5247', signalTextColor:'#211c16',
-    noteBkgColor:'#fff5ee', noteBorderColor:'#f2541b', noteTextColor:'#211c16',
-    fontSize:'14px'
-  }
-});
-
-/* ---- build rail & dots ---- */
+/* rail & dots */
 const rail=document.getElementById('rail');
 chapters.forEach((c,ci)=>{
   const b=document.createElement('button');b.textContent=c;
@@ -613,7 +550,7 @@ const dotsEl=document.getElementById('dots');
 slides.forEach((_,idx)=>{const d=document.createElement('div');d.className='dot';d.onclick=()=>go(idx);dotsEl.appendChild(d)});
 const dots=[...dotsEl.children];
 
-/* ---- tabs ---- */
+/* tabs */
 document.querySelectorAll('[data-tabs]').forEach(tg=>{
   const key=tg.dataset.tabs;
   const panels=document.querySelector(`[data-panels="${key}"]`).children;
@@ -626,14 +563,13 @@ document.querySelectorAll('[data-tabs]').forEach(tg=>{
   });
 });
 
-/* ---- navigation ---- */
+/* navigation */
 function go(n){
   n=Math.max(0,Math.min(slides.length-1,n));
   slides[i].classList.remove('active');
   slides[i].classList.toggle('prev',n>i);
   i=n;
   slides[i].classList.remove('prev');
-  // restart reveal animations
   slides[i].querySelectorAll('.r').forEach(el=>{el.style.animation='none';el.offsetHeight;el.style.animation=''});
   slides[i].classList.add('active');
   update();
@@ -656,12 +592,11 @@ addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(i-1)}
   if(e.key==='Home')go(0); if(e.key==='End')go(slides.length-1);
 });
-// swipe
 let sx=0;
 addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
 addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>60)go(i+(dx<0?1:-1))},{passive:true});
 
-/* ---- AI confidence demo ---- */
+/* AI confidence demo */
 const samples=[
   {opts:['苹果','橙子','气球','灯泡'],right:'灯泡',reason:'红红圆圆的'},
   {opts:['猫','老虎','兔子','狐狸'],right:'兔子',reason:'有长耳朵'},
@@ -673,36 +608,23 @@ if(dBtn){
   dBtn.onclick=()=>{
     const s=samples[Math.floor(Math.random()*samples.length)];
     const pick=s.opts[Math.floor(Math.random()*s.opts.length)];
-    const conf=40+Math.floor(Math.random()*56); // 40-95
+    const conf=40+Math.floor(Math.random()*56);
     document.getElementById('dGuess').textContent=pick;
     document.getElementById('dNum').textContent=conf+'%';
     document.getElementById('dFill').style.width=conf+'%';
     document.getElementById('dReason').innerHTML='💭 AI 理由：<b>「'+s.reason+'」</b>';
     const ok=pick===s.right;
-    const v=document.getElementById('dVerdict');
-    v.innerHTML = ok
+    document.getElementById('dVerdict').innerHTML = ok
       ? '<span class="hl-ai">✅ AI 猜对了 → AI 阵营得分</span>'
       : '<span class="hl">🎉 AI 被骗到了 → 人类 +2！</span>';
     dBtn.textContent='🎲 再来一次';
   };
 }
 
-/* ---- boot: render mermaid, then reveal deck ---- */
-(async()=>{
-  try{ await mermaid.run({nodes:document.querySelectorAll('.mermaid')}); }catch(e){ console.warn(e); }
-  // collapse non-active tab panels (mermaid already sized)
-  document.querySelectorAll('[data-panels]').forEach(wrap=>{
-    [...wrap.children].forEach(p=>{if(!p.classList.contains('on'))p.style.display='none';});
-  });
-  document.querySelectorAll('.tab').forEach(tab=>{
-    const tg=tab.closest('[data-tabs]');const key=tg.dataset.tabs;
-    const panels=document.querySelector(`[data-panels="${key}"]`).children;
-    tab.addEventListener('click',()=>{[...panels].forEach((p,pi)=>{p.style.display=pi==+tab.dataset.t?'':'none'})});
-  });
-  slides[0].classList.add('active');
-  update();
-  document.getElementById('loader').classList.add('gone');
-})();
+/* boot */
+slides[0].classList.add('active');
+update();
+document.getElementById('loader').classList.add('gone');
 </script>
 </body>
 </html>
