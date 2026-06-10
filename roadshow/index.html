@@ -303,28 +303,7 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
     </div>
   </section>
 
-  <!-- ===== 2b 记分 ===== -->
-  <section class="slide" data-chapter="1">
-    <span class="kicker r" style="--d:0"><span class="num">2</span> 游戏设计思路 · 记分规则</span>
-    <h2 class="r" style="--d:1"><span class="hl">人类阵营</span> &nbsp;VS&nbsp; <span class="hl-ai">AI</span>：四种结局，奖励「骗过 AI」</h2>
-    <div class="cols" style="margin-top:26px;grid-template-columns:1.15fr .85fr">
-      <div class="matrix r" style="--d:2">
-        <div class="qcard win-h"><span class="corner">🎉</span><div class="tag">人类猜对 · AI 猜错</div><div class="pts">人类 +2</div><div class="desc">完美「加密」！画手成功骗过 AI</div></div>
-        <div class="qcard win-ai"><span class="corner">💥</span><div class="tag">人类猜错 · AI 猜对</div><div class="pts">AI +3</div><div class="desc">AI 暴击（含 bonus），人类全军覆没</div></div>
-        <div class="qcard"><span class="corner">🤝</span><div class="tag">人类猜对 · AI 也对</div><div class="pts">人类 +1 · AI +1</div><div class="desc">画得太直白，双方都得分</div></div>
-        <div class="qcard draw0"><span class="corner">😶</span><div class="tag">人类猜错 · AI 也错</div><div class="pts">0 : 0</div><div class="desc">题太抽象，双输</div></div>
-      </div>
-      <div class="stack r" style="--d:3">
-        <div class="card">
-          <p style="font-weight:900;font-size:17px;margin-bottom:8px">🏁 怎么算赢？</p>
-          <p class="lead" style="font-size:15px">玩满<b>约定局数</b>，或某一方<b>先到目标分</b>（默认 10 分）。</p>
-        </div>
-        <p class="sweet">设计精髓：分数<b>明显偏向「人懂、AI 不懂」</b>那一格（+2），用规则把玩家往那片甜蜜区里推。</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 2c AI 信心值 ===== -->
+  <!-- ===== 2b AI 信心值 ===== -->
   <section class="slide" data-chapter="1">
     <span class="kicker r" style="--d:0"><span class="num">2</span> 游戏设计思路 · AI 信心值</span>
     <h2 class="r" style="--d:1">AI 不只给答案，还会<span class="hl-ai">亮出底牌</span></h2>
@@ -345,6 +324,27 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
           <div class="verdict" id="dVerdict"></div>
           <button class="btn" id="dBtn">🎲 让 AI 猜一次</button>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 2c 记分 ===== -->
+  <section class="slide" data-chapter="1">
+    <span class="kicker r" style="--d:0"><span class="num">2</span> 游戏设计思路 · 记分规则</span>
+    <h2 class="r" style="--d:1"><span class="hl">人类阵营</span> &nbsp;VS&nbsp; <span class="hl-ai">AI</span>：四种结局，奖励「骗过 AI」</h2>
+    <div class="cols" style="margin-top:26px;grid-template-columns:1.15fr .85fr">
+      <div class="matrix r" style="--d:2">
+        <div class="qcard win-h"><span class="corner">🎉</span><div class="tag">人类猜对 · AI 猜错</div><div class="pts">人类 +2</div><div class="desc">完美「加密」！画手成功骗过 AI</div></div>
+        <div class="qcard win-ai"><span class="corner">💥</span><div class="tag">人类猜错 · AI 猜对</div><div class="pts">AI +3</div><div class="desc">AI 暴击（含 bonus），人类全军覆没</div></div>
+        <div class="qcard"><span class="corner">🤝</span><div class="tag">人类猜对 · AI 也对</div><div class="pts">人类 +1 · AI +1</div><div class="desc">画得太直白，双方都得分</div></div>
+        <div class="qcard draw0"><span class="corner">😶</span><div class="tag">人类猜错 · AI 也错</div><div class="pts">0 : 0</div><div class="desc">题太抽象，双输</div></div>
+      </div>
+      <div class="stack r" style="--d:3">
+        <div class="card">
+          <p style="font-weight:900;font-size:17px;margin-bottom:8px">🏁 怎么算赢？</p>
+          <p class="lead" style="font-size:15px">玩满<b>约定局数</b>，或某一方<b>先到目标分</b>（默认 10 分）。</p>
+        </div>
+        <p class="sweet">设计精髓：分数<b>明显偏向「人懂、AI 不懂」</b>那一格（+2），用规则把玩家往那片甜蜜区里推。</p>
       </div>
     </div>
   </section>
