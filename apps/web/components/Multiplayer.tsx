@@ -7,10 +7,12 @@ import { useRoom } from '@/lib/useRoom'
 import type { GameMode, NetPlayer, RoomState } from '@deviation/shared'
 
 const CATS = [
-  { id: 'creature', label: '生物' },
   { id: 'object', label: '物品' },
-  { id: 'food', label: '食物' },
+  { id: 'animal', label: '动物' },
   { id: 'action', label: '动作' },
+  { id: 'tech', label: '科技' },
+  { id: 'work', label: '工作' },
+  { id: 'abstract', label: '抽象' },
 ]
 
 /** Shareable invite URL — opening it prefills the room code on the join screen. */

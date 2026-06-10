@@ -155,7 +155,7 @@ function nextDrawer(room: Room): string | null {
 }
 
 function startRound(room: Room, catId?: string) {
-  const cat = findCategory(catId || room.category?.id || 'creature')
+  const cat = findCategory(catId || room.category?.id || 'object')
   const r = pickRound(cat)
   room.category = { id: cat.id, label: cat.label }
   room.target = r.target
