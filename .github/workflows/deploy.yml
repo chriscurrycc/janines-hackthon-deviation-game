@@ -5,6 +5,10 @@ name: build-and-push
 on:
   push:
     branches: [main]
+    # Docs-only commits don't change the images — skip the build.
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
   workflow_dispatch:
 
 permissions:
