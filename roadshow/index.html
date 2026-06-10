@@ -152,9 +152,9 @@ h2{font-size:clamp(24px,3.3vw,42px);font-weight:900;line-height:1.14;letter-spac
 @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(max-width:900px){.panel{grid-template-columns:1fr}}
 .notes h3{font-size:20px;font-weight:900;margin-bottom:12px}
-.notes .mini{list-style:none;display:flex;flex-direction:column;gap:9px;margin-top:4px}
-.notes .mini li{font-size:14px;color:var(--ink);line-height:1.5;padding-left:18px;position:relative}
-.notes .mini li::before{content:"";position:absolute;left:0;top:8px;width:8px;height:8px;border-radius:2px;background:var(--human);transform:rotate(45deg)}
+.mini{list-style:none;display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.mini li{font-size:14px;color:var(--ink);line-height:1.5;padding-left:18px;position:relative}
+.mini li::before{content:"";position:absolute;left:0;top:8px;width:8px;height:8px;border-radius:2px;background:var(--human);transform:rotate(45deg)}
 .codechip{font-family:"JetBrains Mono",monospace;font-size:12.5px;background:var(--paper-2);padding:2px 7px;border-radius:6px;border:1px solid var(--line);color:var(--ai)}
 
 /* ====== bespoke diagrams (replace Mermaid) ====== */
@@ -248,7 +248,7 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
     <p class="cover-sub r" style="--d:3">一场 <b class="hl">人类直觉</b> 与 <b class="hl-ai">机器认知</b> 的较量：<br/>画得「人一眼懂、却让 AI 猜不透」，你就赢了。</p>
     <div class="cover-meta r" style="--d:4">
       <span class="pill">🎨 反向你画我猜</span>
-      <span class="pill">🤖 AI 当对手 & 裁判</span>
+      <span class="pill">🤖 与 AI 竞赛</span>
       <span class="pill">⚡ 实时多人对战</span>
     </div>
   </section>
@@ -335,6 +335,24 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
           <div class="verdict" id="dVerdict"></div>
           <button class="btn" id="dBtn">🎲 让 AI 猜一次</button>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 2d 公平竞技 ===== -->
+  <section class="slide" data-chapter="1">
+    <span class="kicker r" style="--d:0"><span class="num">2</span> 游戏设计思路 · 公平竞技</span>
+    <h2 class="r" style="--d:1">不是「为难 AI」，而是<span class="hl">和它公平同台</span></h2>
+    <div class="cols" style="margin-top:30px">
+      <ul class="bullets r" style="--d:2">
+        <li><span class="ic">🎲</span><div><b>中性题目</b>：用日常词汇，<b>不挑「明显只有人类才懂」</b>的词——双方机会均等。</div></li>
+        <li><span class="ic">⚖️</span><div><b>双方都可能猜对</b>：没有天然偏向画手，胜负靠<span class="hl">策略</span>而非运气。</div></li>
+        <li><span class="ic">🎨</span><div><b>靠绘画策略制造信息差</b>：用抽象、留白、梗，在「人懂、AI 不懂」之间找<b>操作空间</b>去误导 AI。</div></li>
+        <li><span class="ic">👀</span><div><b>都认识的词</b>：大家一看就懂，不会出现「这啥玩意」破坏体验。</div></li>
+      </ul>
+      <div class="card r" style="--d:4">
+        <p class="lead" style="font-size:18px;color:var(--ink)">⚖️ 为什么强调「公平」？</p>
+        <p class="lead" style="margin-top:10px">如果题目天生偏向人类，赢 AI 就没意思了。<br/>我们让 AI 有真实的<b>胜算</b>——<br/>所以「骗过它」才<span class="hl">值得高兴</span>。</p>
       </div>
     </div>
   </section>
@@ -509,9 +527,53 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
     </div>
   </section>
 
-  <!-- ===== 5 总结升华 ===== -->
-  <section class="slide" data-chapter="4">
-    <span class="kicker r" style="--d:0"><span class="num">5</span> 总结 & 升华</span>
+  <!-- ===== 4b 100 人扩展 ===== -->
+  <section class="slide top" data-chapter="3">
+    <span class="kicker r" style="--d:0"><span class="num">4</span> 技术架构 · 如果 100 人同时玩？</span>
+    <h2 class="r" style="--d:1">现在<span class="hl">毫无压力</span>，未来还能<span class="hl-ai">平滑长大</span></h2>
+    <div class="cols r" style="--d:2;margin-top:24px;align-items:stretch">
+      <div class="card" style="border-color:var(--human);border-width:1.8px">
+        <p style="font-weight:900;font-size:18px;margin-bottom:12px">🧭 产品设计 · 把人「分流」</p>
+        <ul class="mini">
+          <li><b>「当前在线房间列表」</b>就是天然的<b>分流入口</b>。</li>
+          <li>高并发时把人<b>自然铺开</b>到多个房间，每房保持「人数刚好、体验最好」。</li>
+          <li>后续做<b>智能推荐 / 自动开新房</b>，确保高峰也不掉体验。</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:var(--ai);border-width:1.8px">
+        <p style="font-weight:900;font-size:18px;margin-bottom:12px">🏗️ 技术架构 · 让系统「长大」</p>
+        <ul class="mini">
+          <li><b>现在 100 人毫无压力</b>：单进程轻松扛几千条连接。</li>
+          <li>要「做大 / 稳定 / 不停机」时：房间进度现记在<b>单服务内存</b>，一重启就丢局 → 搬到<b>共享记忆库 Redis</b>，重启升级对玩家<b>无感</b>。</li>
+          <li>实时服务可<b>横向扩展</b>多实例，一起分担「主持人」。</li>
+          <li>AI 调用加<b>限流 / 重试 / 排队</b>，避免多房间同时打 AI 卡死。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 5 AI 的角色 ===== -->
+  <section class="slide top" data-chapter="4">
+    <span class="kicker r" style="--d:0"><span class="num">5</span> AI 的角色 · 贯穿始终</span>
+    <h2 class="r" style="--d:1">AI 在这个项目里，扮演了<span class="hl">两种角色</span></h2>
+    <div class="cols r" style="--d:2;margin-top:24px;align-items:stretch">
+      <div class="card" style="border-color:var(--human);border-width:1.8px">
+        <div style="font-size:30px">🎭</div>
+        <p style="font-weight:900;font-size:19px;margin:8px 0 10px">台前 · 游戏的灵魂</p>
+        <p class="lead" style="font-size:15px">在玩法层面，AI 是<b>被挑战的对手</b>。游戏的核心乐趣，就是用<span class="hl">人类的共识与通感</span>去打败它——没有 AI，这个游戏就不成立。</p>
+      </div>
+      <div class="card" style="border-color:var(--ai);border-width:1.8px">
+        <div style="font-size:30px">🛠️</div>
+        <p style="font-weight:900;font-size:19px;margin:8px 0 10px">幕后 · 开发的搭档</p>
+        <p class="lead" style="font-size:15px">在工程层面，AI 当了<b>参谋 + 程序员</b>：一起想清<span class="hl-ai">「为何拆两个服务」</span>等架构取舍、写代码、写技术文档——把想法快速变成能跑的产品。</p>
+      </div>
+    </div>
+    <p class="lead r" style="--d:4;margin-top:22px;text-align:center;max-width:none">既是<b class="hl">台前的对手</b>，也是<b class="hl-ai">幕后的搭档</b>——AI 贯穿了这个项目的「玩」与「做」。</p>
+  </section>
+
+  <!-- ===== 6 总结升华 ===== -->
+  <section class="slide" data-chapter="5">
+    <span class="kicker r" style="--d:0"><span class="num">6</span> 总结 & 升华</span>
     <h2 class="r" style="--d:1">一个小游戏，一次「人 vs 机器认知」的轻量实验</h2>
     <div class="sum-grid">
       <div class="sum-card r" style="--d:2"><div class="e">🧠</div><h4>人类的默契，AI 的盲区</h4><p>AI 很强，但「共识、联想、文化默契」依然是它够不到的地方——我们把它做成了乐趣。</p></div>
@@ -536,7 +598,7 @@ kbd{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--card)
 
 <script>
 const slides=[...document.querySelectorAll('.slide')];
-const chapters=['背景','设计思路','产品设计','技术架构','总结'];
+const chapters=['背景','设计思路','产品设计','技术架构','AI 角色','总结'];
 let i=0;
 
 /* rail & dots */
